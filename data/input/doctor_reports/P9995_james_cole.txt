@@ -1,0 +1,48 @@
+================================================================
+ST. MARIAN REGIONAL MEDICAL CENTER  —  DISCHARGE SUMMARY
+================================================================
+
+Patient ID:           P9995
+Patient Name:         James Cole
+Age:                  42
+Gender:               Male
+Address:              77 Pine Rd, Denver, CO 80202
+Admission Date:       2026-07-14
+Discharge Date:       2026-07-17
+Ward:                 3A
+Bed No.:              11
+Attending Physician:  Dr. Helen Brooks, MD
+Consulting Doctors:   Dr. Brooks
+Language of Record:   English
+Discharge OK:         YES
+
+----------------------------------------------------------------
+DISCHARGE DIAGNOSIS
+----------------------------------------------------------------
+1. Community-acquired pneumonia (J18.9)
+
+----------------------------------------------------------------
+ALLERGIES
+----------------------------------------------------------------
+- Penicillin
+
+----------------------------------------------------------------
+DISCHARGE PRESCRIPTIONS
+----------------------------------------------------------------
+Sl.No | Medicine Name | Strength | Dosage | Frequency | Route | Period | Remarks | Total Qty
+1 | Ampicillin | 500 mg | 1 capsule | QID | ORAL | 7 days | Complete course | 28
+2 | Acetaminophen | 500 mg | 1 tablet | q6h PRN | ORAL | 5 days | For fever | 20
+
+----------------------------------------------------------------
+FOLLOW-UP APPOINTMENT
+----------------------------------------------------------------
+- PCP follow-up on 2026-07-31.
+
+----------------------------------------------------------------
+DISCHARGE INSTRUCTIONS
+----------------------------------------------------------------
+- Complete antibiotics; return for worsening dyspnea.
+
+================================================================
+End of Document
+================================================================

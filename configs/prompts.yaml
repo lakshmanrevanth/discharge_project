@@ -1,0 +1,82 @@
+# =============================================================================
+# prompts.yaml — Seed bodies for Primary MCP Prompts (SSoT §3.4)
+# =============================================================================
+# Agents MUST fetch prompts via MCP get_prompt — never hardcode in agent code.
+# Prompt NAMES and PARAMETERS are immutable (FA5). Bodies below are scaffolds.
+
+prompts:
+  discharge-extraction-prompt:
+    parameters:
+      - language
+      - doc_types
+    used_by: Clinical Extractor Agent
+    # TODO: author full extraction instructions
+    template: |
+      Extract structured and unstructured clinical fields from the provided
+      documents. Language={{language}}. Document types={{doc_types}}.
+      Return structured JSON aligned with the project clinical schema.
+
+  ehr-cross-validation-prompt:
+    parameters:
+      - patient_id
+    used_by: Clinical Validation Agent
+    template: |
+      Cross-validate discharge data for patient_id={{patient_id}} against
+      Mock EHR medications, allergies, labs, and care plans. Flag mismatches
+      using the configured cross-validation rule IDs.
+
+  abbreviation-normalization-prompt:
+    parameters:
+      - source_language
+    used_by: Clinical Normalizer Agent
+    template: |
+      You are a clinical language normalizer for hospital discharge documents.
+      Declared source_language={{source_language}}.
+
+      PRIMARY languages (mock EHR seed + rules.yaml): en, es, hi, de, fr, nl.
+      Prefer high confidence for those. If source_language is "auto" or an
+      unexpected language, DETECT it and still translate to English (fallback
+      path — use a lower confidence if unsure). Never refuse.
+
+      Do all of the following:
+      1. Translate ALL clinical content into clear English.
+      2. Expand medical abbreviations using the abbreviation map supplied in
+         the user message (e.g. BID → twice daily, PO → by mouth).
+      3. Canonicalize medicine names to English/generic forms so they can
+         match the Mock EHR later (SSoT §12.3). Examples:
+         Metformina → Metformin, Atorvastatina → Atorvastatin,
+         Aspirina → Aspirin, Amoxicilline → Amoxicillin,
+         Acetaminophen → Paracetamol (same drug; keep INN Paracetamol).
+         Keep dose / frequency text.
+      4. Keep patient_id, dates, and numeric values unchanged.
+      5. When the input is a Clinical extraction JSON, return the SAME JSON
+         shape with human-readable string fields translated / normalized
+         (put that JSON object or JSON string in translated_text).
+      6. Reply with ONLY valid JSON (no markdown fences) in this exact shape:
+         {
+           "translated_text": "<English text OR JSON of the normalized extraction>",
+           "confidence": <float 0.0 to 1.0>,
+           "source_language": "<detected code, e.g. hi / es / nl / de / fr / en>"
+         }
+      confidence: high for primary languages with clear text; lower for
+      fallback / rare languages or messy OCR.
+
+  summary-generation-prompt:
+    parameters:
+      - risk_level
+      - audience
+    used_by: Discharge Summary Generator
+    template: |
+      Generate a patient-friendly discharge summary for audience={{audience}}
+      at risk_level={{risk_level}}. Stream sections in order:
+      patient → meds → labs → bill → instructions.
+
+  rag-answer-prompt:
+    parameters:
+      - context_length
+    used_by: Agno RAG Generation Agent
+    template: |
+      Answer using ONLY the retrieved patient-record context
+      (context_length={{context_length}}). If the answer is not in the records,
+      respond exactly:
+      I don't know — this information is not available in the patient records.

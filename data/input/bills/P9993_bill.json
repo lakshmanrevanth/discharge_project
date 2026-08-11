@@ -1,0 +1,12 @@
+{
+  "bill_id": "BILL-2026-9993",
+  "patient_id": "P9993",
+  "patient_name": "Elena Rossi",
+  "issue_date": "2026-07-09",
+  "currency": "USD",
+  "payment_status": "PAID",
+  "line_items": [
+    {"item_code": "ROOM", "description": "Observation (1 night)", "qty": 1, "unit_price": 400.0, "total": 400.0}
+  ],
+  "total_amount": 400.0
+}

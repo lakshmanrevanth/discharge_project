@@ -1,0 +1,12 @@
+{
+  "bill_id": "BILL-2026-9991",
+  "patient_id": "P9991",
+  "patient_name": "Nova Reid",
+  "issue_date": "2026-07-03",
+  "currency": "USD",
+  "payment_status": "PAID",
+  "line_items": [
+    {"item_code": "ROOM", "description": "Ward bed (2 nights)", "qty": 2, "unit_price": 350.0, "total": 700.0}
+  ],
+  "total_amount": 700.0
+}

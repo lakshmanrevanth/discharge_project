@@ -1,0 +1,3 @@
+Patient ID: P9994
+Test | Result | Flag
+HbA1c | 6.8 % | NORMAL

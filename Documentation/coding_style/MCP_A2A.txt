@@ -1,0 +1,2104 @@
+import asyncio
+import os
+from tabulate import tabulate
+from pprint import pprint
+import json
+from pydantic import AnyUrl
+from mcp import ClientSession, StdioServerParameters, types
+from mcp.client.stdio import stdio_client
+from mcp.shared.context import RequestContext
+from mcp.shared.metadata_utils import get_display_name
+# Create server parameters for stdio connection
+server_params = StdioServerParameters(
+    command="uv",  # Using uv to run the server
+    args=["run", "server", "mcp_server", "stdio"],  # We're already in snippets dir
+    env={"UV_INDEX": os.environ.get("UV_INDEX", "")},
+)
+## ------- Tool, Resource and Prompts usage and Sampling Callback defining Code goes here -----------
+async def run():
+	# Connecting to STDIO server
+    async with stdio_client(server_params) as (read, write):
+        ## ------- Implementation Code -----------
+def main():
+    """Entry point for the client script."""
+    asyncio.run(run())
+if __name__ == "__main__":
+    main()
+
+
+import asyncio
+import os
+from tabulate import tabulate
+from pprint import pprint
+import json
+from pydantic import AnyUrl
+from mcp import ClientSession, types
+from mcp.client.streamable_http import streamable_http_client
+from mcp.shared.context import RequestContext
+from mcp.shared.metadata_utils import get_display_name
+## ------- Tool, Resource and Prompts usage and Sampling Callback defining Code goes here -----------
+async def run():
+	# Connecting to Streamable-HTTP server
+    async with streamablehttp_client("http://localhost:8007/mcpserver") as (
+        read,
+        write,
+        _,
+    ):
+        ## ------- Implementation Code -----------
+def main():
+    """Entry point for the client script."""
+    asyncio.run(run())
+if __name__ == "__main__":
+    main()
+
+
+async def display_tools(session: ClientSession):
+    """Display available tools with human-readable names"""
+    tools_response = await session.list_tools()
+    for tool in tools_response.tools:
+        # get_display_name() returns the title if available, otherwise the name
+        display_name = get_display_name(tool)
+        print(f"Tool: {display_name}")
+        if tool.description:
+            print(f"   {tool.description}")
+
+
+async def display_resources(session: ClientSession):
+    """Display available resources with human-readable names"""
+    resources_response = await session.list_resources()
+    for resource in resources_response.resources:
+        display_name = get_display_name(resource)
+        print(f"Resource: {display_name} ({resource.uri})")
+    templates_response = await session.list_resource_templates()
+    for template in templates_response.resourceTemplates:
+        display_name = get_display_name(template)
+        print(f"Resource Template: {display_name}")
+
+
+async def display_prompts(session: ClientSession):
+    """Display available prompts with human-readable names"""
+    prompts_response = await session.list_prompts()
+    for prompt in prompts_response.prompts:
+        display_name = get_display_name(prompt)
+        print(f"Prompt: {display_name}")
+        if prompt.description:
+            print(f"   {prompt.description}")
+
+
+async def handle_sampling_message(
+    context: RequestContext[ClientSession, None], params: types.CreateMessageRequestParams
+) -> types.CreateMessageResult:
+    print(f"Sampling request: {params.messages}")
+    return types.CreateMessageResult(
+        role="assistant",
+        content=types.TextContent(
+            type="text",
+            text="Hello, world! from model",
+        ),
+        model="qwen3-32b",
+        stopReason="endTurn",
+    )
+
+
+async def run():
+	# Connecting to STDIO server
+    #async with stdio_client(server_params) as (read, write):
+    # Connecting to Streambale-HTTP server
+    async with streamable_http_client("http://localhost:8007/mcpserver") as (
+        read,
+        write,
+        _,
+    ):
+        ## ------- Implementation Code -----------
+        async with ClientSession(read, write, sampling_callback=handle_sampling_message) as session:
+            # Initialize the connection
+            await session.initialize()
+
+
+async def run():
+	# Connecting to STDIO server
+    #async with stdio_client(server_params) as (read, write):
+    # Connecting to Streambale-HTTP server
+    async with streamable_http_client("http://localhost:8007/mcpserver") as (
+        read,
+        write,
+        _,
+    ):
+        ## ------- Implementation Code -----------
+        async with ClientSession(read, write, sampling_callback=handle_sampling_message) as session:
+            # Initialize the connection
+            await session.initialize()
+            
+            # List available tools
+            #tools = await session.list_tools()
+            #print(f"Available tools: {[t.name for t in tools.tools]}")
+            print("=== Available Tools ===")
+            await display_tools(session)
+            print("-------------------------------\n")
+            # List available resources
+            #resources = await session.list_resources()
+            #print(f"Available resources: {[r.uri for r in resources.resources]}")
+            print("\n=== Available Resources ===")
+            await display_resources(session)
+            print("-------------------------------\n")
+            # List available prompts
+            #prompts = await session.list_prompts()
+            #print(f"Available prompts: {[p.name for p in prompts.prompts]}")
+            print("\n=== Available Prompts ===")
+            await display_prompts(session)
+            print("-------------------------------\n")
+            
+
+
+
+async def run():
+	# Connecting to STDIO server
+    #async with stdio_client(server_params) as (read, write):
+    # Connecting to Streambale-HTTP server
+    async with streamable_http_client("http://localhost:8007/mcpserver") as (
+        read,
+        write,
+        _,
+    ):
+        ## ------- Implementation Code -----------
+        async with ClientSession(read, write, sampling_callback=handle_sampling_message) as session:
+            # Initialize the connection
+            await session.initialize()
+            ...
+            ...
+            # Get a prompt (generate_code_request prompt from mcp_server)
+            prompts = await session.list_prompts()
+            if prompts.prompts:
+                prompt = await session.get_prompt("generate_code_request", 
+                									arguments={
+                												"language": "java", 
+                												"task_description": "socket programming"
+                												}
+                								  )
+                print(f"Prompt result: for \'generate_code_request\' prompt \n {prompt.messages[0].content.text}")
+            print("-------------------------------\n")
+            
+
+
+async def run():
+	# Connecting to STDIO server
+    #async with stdio_client(server_params) as (read, write):
+    # Connecting to Streambale-HTTP server
+    async with streamable_http_client("http://localhost:8007/mcpserver") as (
+        read,
+        write,
+        _,
+    ):
+        ## ------- Implementation Code -----------
+        async with ClientSession(read, write, sampling_callback=handle_sampling_message) as session:
+            # Initialize the connection
+            await session.initialize()
+            ...
+            ...
+            # Read a resource (notice resource from mcp_server)
+            resource_content = await session.read_resource(AnyUrl("resource://notice"))
+            content_block = resource_content.contents[0]
+            if isinstance(content_block, types.TextResourceContents):
+                print(f"\'notice\' Resource content:\n{content_block.text}")
+            print("-------------------------------\n")
+
+
+
+async def run():
+	# Connecting to STDIO server
+    #async with stdio_client(server_params) as (read, write):
+    # Connecting to Streambale-HTTP server
+    async with streamable_http_client("http://localhost:8007/mcpserver") as (
+        read,
+        write,
+        _,
+    ):
+        ## ------- Implementation Code -----------
+        async with ClientSession(read, write, sampling_callback=handle_sampling_message) as session:
+            # Initialize the connection
+            await session.initialize()
+            ...
+            ...
+            # Call a tool (add tool from mcp_server)
+		    # Example 1: Parsing unstructured text content
+            result = await session.call_tool("add", arguments={"a": 5, "b": 3})
+            result_unstructured = result.content[0]
+            if isinstance(result_unstructured, types.TextContent):
+                print(f"\'add\' Tool result: {result_unstructured.text}")
+            result_structured = result.structuredContent
+            print(f"Structured \'add\' Tool result: {result_structured}")
+            print("-------------------------------\n")
+
+
+
+async def run():
+	# Connecting to STDIO server
+    #async with stdio_client(server_params) as (read, write):
+    # Connecting to Streambale-HTTP server
+    async with streamable_http_client("http://localhost:8007/mcpserver") as (
+        read,
+        write,
+        _,
+    ):
+        ## ------- Implementation Code -----------
+        async with ClientSession(read, write, sampling_callback=handle_sampling_message) as session:
+            # Initialize the connection
+            await session.initialize()
+            ...
+            ...
+            # Call a tool (search_user tool from mcp_server)
+            # Example 2: Parsing structured content from JSON tools
+            result = await session.call_tool(
+                                                "search_user", 
+                                                arguments={"gender": "male","city":None}
+                                            )
+            #print(type(result))
+            print("\'search_user\' Tool Result:")
+            if hasattr(result, "structuredContent") and result.structuredContent:
+                # Access structured data directly
+                user_data = result.structuredContent['result']
+                headers = user_data[0].keys()
+                # Extract values for each row
+                rows = [d.values() for d in user_data]
+                print(tabulate(rows, headers=headers, tablefmt="grid"))
+                
+            print("-------------------------------\n")
+
+
+
+async def run():
+	# Connecting to STDIO server
+    #async with stdio_client(server_params) as (read, write):
+    # Connecting to Streambale-HTTP server
+    async with streamable_http_client("http://localhost:8007/mcpserver") as (
+        read,
+        write,
+        _,
+    ):
+        ## ------- Implementation Code -----------
+        async with ClientSession(read, write, sampling_callback=handle_sampling_message) as session:
+            # Initialize the connection
+            await session.initialize()
+            ...
+            ...
+            # Call a tool (server_info tool from mcp_server)
+            # Example 3: Getting MCP Server Information
+            result = await session.call_tool("server_info")
+            #print(type(result))
+            #print(hasattr(result, "structuredContent"),result)
+            print("\'server_info\' Tool Result:")
+            if result.isError:
+                print("Tool execution failed!")
+                for content in result.content:
+                    if isinstance(content, types.TextContent):
+                        print(f"Error: {content.text}")
+            else:
+                if hasattr(result, "structuredContent") and result.structuredContent:
+                    # Access structured data directly
+                    print("Tool Output:")
+                    server_data = result.structuredContent
+                    json_string = json.dumps(server_data) 
+                    server_data = json.loads(json_string)
+                    pprint(server_data)
+            print("-------------------------------\n")
+
+
+
+
+import json
+import pandas as pd
+import numpy as np
+from mcp.server.fastmcp import FastMCP, Context as mcpContext
+from pathlib import Path
+from mcp.server.fastmcp.resources import TextResource,FileResource, BinaryResource, DirectoryResource
+import aiofiles
+import asyncio 
+from mcp.types import PromptMessage, TextContent
+from mcp.server.session import ServerSession
+from fastmcp.prompts.prompt import Message
+from pydantic import Field
+from mcp.types import ModelPreferences
+from fastmcp import Context
+import pandas as pd
+from typing import Annotated
+from typing import TypedDict
+# For Recent releases of MCP Python SDK use:
+# from mcp.server.mcpserver import MCPServer, Context
+# Create an MCP server
+## - Use 'MCPServer(...)' instead of FastMCP(...) for recent MCP-Python-SDK versions
+#---- For STDIO Transport-------
+#mcp = FastMCP(name="MCPServer")
+#---- For Streamable HTTP Transport-------
+mcp = FastMCP(name="MCPServer",  
+              port=8007, 
+              stateless_http=False, 
+              streamable_http_path="/mcpserver", 
+              host="127.0.0.1",
+              warn_on_duplicate_resources=True)
+##  ------- Resource, Tools and prompt Definitions goes here -----------
+def main():
+    """Entry point for the direct execution server."""
+    mcp.run(
+    		#transport="stdio" #For STDIO Transport
+            transport="streamable-http"
+            )
+    
+if __name__ == "__main__":
+    main()
+
+
+
+...
+# RESOURCES=======================================================================================
+# 1. Basic Direct / Static resource returning a predefined text
+@mcp.resource(uri="resource://greeting",
+              name="get_greeting",
+              title="Get Greeting message",
+              description="Get Simple Greeting message",
+              mime_type="text/plain")
+async def get_greeting() -> str:
+    """Provides a simple greeting message."""
+    return "Hello from FastMCP Resources!"
+# 2. Exposing simple, predefined text using TextResource Class
+notice_resource = TextResource(
+    uri="resource://notice",
+    title="Application Notice",
+    name="Important Notice",
+    text='''System maintenance scheduled for Sunday 10th August, 2025, from 10:00 Hrs to 17:00 hrs." \
+    During this period, the application will be unavailable. We apologize for any inconvenience this may cause and appreciate your patience as we work to improve our services.'''
+)
+mcp.add_resource(notice_resource)
+# 3. Exposing a static file directly as Resource
+log_file_path = Path("app/logs/application.log")
+@mcp.resource(uri=f"file://{log_file_path.as_posix()}",
+              name="read_application_log",
+              title="Read Application Logs",
+              description="Read Inventory Management System Log file",
+              mime_type="text/plain")
+async def read_application_log() -> str:
+    """Reads content from a specific log file asynchronously."""
+    try:
+        async with aiofiles.open(log_file_path, mode="r") as f:
+            content = await f.read()
+        return content
+    except FileNotFoundError:
+        return "Log file not found."
+# 4. Direct / Static Resource returning JSON data (dict is auto-serialized)
+## Helper Function
+def read_json_file(file_path):
+    """
+    Reads a JSON file, parses it, and returns the data as a Python dictionary.
+    Args:
+        file_path (str): The path to the JSON file.
+    Returns:
+        dict or None: The parsed JSON data if successful, otherwise None.
+    """
+    try:
+        # Use 'with' statement for safe file handling.
+        # It automatically closes the file even if errors occur.
+        with open(file_path, 'r') as file:
+            # json.load() reads from a file object and parses the JSON.
+            data = json.load(file)
+            print(f"Successfully read JSON from '{file_path}'")
+            return data
+    except FileNotFoundError:
+        print(f"Error: The file '{file_path}' was not found.")
+        return None
+    except json.JSONDecodeError:
+        print(f"Error: The file '{file_path}' contains invalid JSON.")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+# Resource
+@mcp.resource(uri="data://config",
+              name="get_config",
+              title="Get Application Configuration",
+              description="Get Inventory Management System Configuration in JSON format",
+              mime_type="application/json")
+async def get_config() -> dict:
+    """Reads application configuration as JSON."""
+    file_name = 'data/config.json'
+    json_data = read_json_file(file_name)
+    return json_data
+# 5. Exposing a static file directly using FileResource Class
+readme_path = Path("data/README.txt").resolve()
+if readme_path.exists():
+    # Use a file:// URI scheme
+    readme_resource = FileResource(
+        uri=f"file://{readme_path.as_posix()}",
+        path=readme_path, # Path to the actual file
+        name="Project README File",
+        description="MC-Hilton Inventory Management System README File.",
+        mime_type="text/markdown"
+    )
+    mcp.add_resource(readme_resource)
+# 6. Exposing a directory listing
+data_dir_path = Path("data/").resolve()
+if data_dir_path.is_dir():
+    data_listing_resource = DirectoryResource(
+        uri="resource://data-files",
+        path=data_dir_path, # Path to the directory
+        name="Resource Server Directory Listing",
+        description="Lists files available in the Server directory.",
+        recursive=True # Set to True to list subdirectories
+    )
+    mcp.add_resource(data_listing_resource) # Returns JSON list of files
+...
+
+
+
+...
+# TOOLS=======================================================================================
+# Adding Calculator tools
+#Tool returns both Text Content and Structured Output
+@mcp.tool(
+            name = "add",
+            title = "add",
+            description = "Add two numbers",
+            annotations={
+                            'readOnlyHint': True,
+                            'destructiveHint': False,
+                            'idempotentHint': False,
+                            'openWorldHint': False
+                        })
+async def add(a: int, b: int) -> int:
+    """Add two numbers"""
+    return a + b
+@mcp.tool(
+            name = "subtract",
+            title = "subtract",
+            description = "Subtract two numbers",
+            annotations={
+                            'readOnlyHint': True,
+                            'destructiveHint': False,
+                            'idempotentHint': False,
+                            'openWorldHint': False
+                        })
+async def subtract(a: int, b: int) -> int:
+    """Subtract two numbers"""
+    return a - b
+@mcp.tool(
+            name = "multiply",
+            title = "multiply",
+            description = "Multiply two numbers",
+            annotations={
+                            'readOnlyHint': True,
+                            'destructiveHint': False,
+                            'idempotentHint': False,
+                            'openWorldHint': False
+                        })
+async def multiply(a: int, b: int) -> int:
+    """multiply two numbers"""
+    return a * b
+@mcp.tool(
+            name = "divide",
+            title = "divide",
+            description = "Divide two numbers",
+            annotations={
+                            'readOnlyHint': True,
+                            'destructiveHint': False,
+                            'idempotentHint': False,
+                            'openWorldHint': False
+                        })
+async def divide(a: int, b: int) -> int:
+    """divide two numbers"""
+    if b == 0:
+        b = 1
+    return a / b
+@mcp.tool(
+            name = "power",
+            title = "power",
+            description = "raising to the power",
+            annotations={
+                            'readOnlyHint': True,
+                            'destructiveHint': False,
+                            'idempotentHint': False,
+                            'openWorldHint': False
+                        }
+)
+async def power(a: int, b: int) -> int:
+    """raising to the power"""
+    return a ** b
+@mcp.tool(
+            name = "exponentiate",
+            title = "exponentiate",
+            description = "raising e to the power",
+            annotations={
+                            'readOnlyHint': True,
+                            'destructiveHint': False,
+                            'idempotentHint': False,
+                            'openWorldHint': False
+                        }
+)
+async def exponentiate(a: int) -> float:
+    """raising e to the power"""
+    return np.exp(a)
+@mcp.tool(
+            name = "natural_logarithm",
+            title = "natural logarithm",
+            description = "compute natural logarithm",
+            annotations={
+                            'readOnlyHint': True,
+                            'destructiveHint': False,
+                            'idempotentHint': False,
+                            'openWorldHint': False
+                        }
+)
+async def natural_logarithm(a: float) -> float:
+    """raising e to the power"""
+    return np.log(a)
+@mcp.tool(
+        name="get_product",
+        description="Retrieve products of a specific category",
+        title="Get Product of a Category",
+)
+async def get_product(query: str, ctx: Context) -> str | list[dict]:
+    """Identify the Category of Product discussed in a Query using the client's LLM."""
+    df = pd.read_csv("csvs\\product.csv")
+    categories = str(set(df['Category']))
+    prompt = f"""Identify the product category of the following query as {categories}.
+    Just output a single word - {categories}.
+    Query to analyze: {query}"""
+    # Request LLM analysis through sampling
+    category = await ctx.sample(messages=prompt,
+                                temperature=0.7, 
+                                model_preferences=ModelPreferences(
+                                    hints=["qwen","claude","gemini"],
+                                    costPriority=0.3,
+                                    speedPriority=0.8,
+                                    intelligencePriority=0.7
+                                )
+                                )
+    print(category.text)
+    if category.text in categories:
+        response = df[df['Category'] == category.text].to_dict(orient='records')
+    else:
+        response = "No Data Found!"
+    return response
+def fetch_users(dataframe, city=None, gender=None):
+    """
+    Fetches users from the DataFrame based on city, gender, or both.
+    Args:
+        dataframe (pd.DataFrame): The input DataFrame.
+        city (str, optional): The city to filter by. Defaults to None.
+        gender (str, optional): The gender to filter by. Defaults to None.
+    Returns:
+        pd.DataFrame: A DataFrame containing the filtered users.
+    """
+    query_conditions = pd.Series([True] * len(dataframe)) # Start with all True
+    if city:
+        query_conditions = query_conditions & (dataframe['City'].str.lower() == city.lower())
+    if gender:
+        query_conditions = query_conditions & (dataframe['Gender'].str.lower() == gender.lower())
+    return dataframe[query_conditions].to_dict(orient='records')
+#Tool return Text Content as well as Structured Output as JSON
+@mcp.tool(
+            name = "search_user",
+            title = "search user",
+            description = "search user by gender and city",
+            annotations={
+                            'readOnlyHint': True,
+                            'destructiveHint': False,
+                            'idempotentHint': True,
+                            'openWorldHint': False
+                        })
+async def search_user(gender: Annotated[str, "gender of user"] | None,
+                        city: Annotated[str, "city of user"] | None) -> list[dict]:
+    """Search user by gender and city."""
+	
+    df = pd.read_csv("csvs\\users.csv")
+    if gender and city:
+        result = fetch_users(df, gender=gender, city=city)
+    elif gender:
+        result = fetch_users(df, gender=gender)
+    elif city:
+        result = fetch_users(df, city=city)
+    return result
+@mcp.tool(
+            name = "calculate_average",
+            title = "calculate average",
+            description = "calculate average of age or salary",
+            annotations={
+                            'readOnlyHint': True,
+                            'destructiveHint': False,
+                            'idempotentHint': False,
+                            'openWorldHint': False
+                        })
+async def calculate_average(data: Annotated[list[int] | list[float], "list of numbers"]) -> float:
+    """calculate average of numbers"""
+    result = 0.0
+    if data:
+        arr= np.array(data)
+        result = np.mean(arr)
+    return result
+...
+
+
+
+...
+# Using TypedDict for simpler structured output - content
+class ServerInfo(TypedDict):
+    name: str
+    instructions: str | None
+    debug_mode: bool
+    log_level: str
+    host: str
+    port: int
+"""Tool that uses context capabilities."""
+#Tool returns both Text Content and Structured Output as TypedDict
+@mcp.tool(  
+            name = "server_info",
+            title = "server information",
+            description = "Get MCP Server information")
+async def server_info(ctx: mcpContext[ServerSession, None]) -> ServerInfo:
+    """Get information about the current server. Returns structured data"""
+    #print(ctx)
+    result = ServerInfo(
+        name = ctx.fastmcp.name,
+        instructions = ctx.fastmcp.instructions,
+        debug_mode = ctx.fastmcp.settings.debug,
+        log_level = ctx.fastmcp.settings.log_level,
+        host = ctx.fastmcp.settings.host,
+        port = ctx.fastmcp.settings.port,
+    )
+    return result        
+...
+
+
+
+...
+# PROMPTS=======================================================================================
+# 1. Basic prompt with simple arguments returning a string (converted to user message automatically) and Decorator Arguments
+@mcp.prompt(name="explain-topic",         # Custom prompt name
+            title="Prompt Template for explanation",   # Custom description
+            description="Generates a user message asking for an explanation of a topic."
+            )
+def explain_topic(topic: str) -> str:
+    """Generates a user message asking for an explanation of a topic. 
+    This docstring is ignored when description is provided."""
+    return f"Can you please explain the concept of '{topic}'?"
+# 2. Basic prompt with structured arguments returning a string (converted to user message automatically) and Decorator Arguments
+@mcp.prompt(
+    name="summarize_prompt",
+    description="Creates a request to summarize a content with specific parameters",
+)
+def summarize_prompt(
+    content_uri: str = Field(description="The URI of the resource containing the content."),
+    summary_type: str = Field(default="short", description="Type of summary.")
+) -> str:
+    """This docstring is ignored when description is provided."""
+    return f"Please perform a '{summary_type}' summary on the text found at {content_uri}."
+# Return Values
+# 3. Prompt returning a specific message type - Example of Inferred Metadata (name=function name, description=docstring)
+@mcp.prompt()
+def generate_code_request(language: str, task_description: str) -> PromptMessage:
+    """Generates a user message requesting code generation."""
+    content = f"Write a {language} function that performs the following task: {task_description}"
+    return PromptMessage(role="user", content=TextContent(type="text", text=content))
+# 4. Prompt returning a list of prompt messages - Example of Inferred Metadata (name=function name, description=docstring)
+@mcp.prompt()
+def roleplay_scenario(character: str, situation: str) -> list[PromptMessage]:
+    """Sets up a roleplaying scenario with initial messages."""
+    return [
+        Message(f"Let's roleplay. You are {character}. The situation is: {situation}"),
+        Message("Okay, I understand. I am ready. What happens next?", role="assistant")
+    ]
+# 5. Prompt with Required vs. Optional Parameters
+@mcp.prompt()
+def data_analysis_prompt(
+    data_uri: str,                        # Required - no default value
+    analysis_type: str = "short",       # Optional - has default value
+    include_charts: bool = False          # Optional - has default value
+) -> str:
+    """Creates a request to analyze data with specific parameters."""
+    prompt = f"Please perform a '{analysis_type}' analysis on the data found at {data_uri}."
+    if include_charts:
+        prompt += " Include relevant charts and visualizations."
+    return prompt
+...
+
+
+
+import asyncio
+from agno.agent import Agent, RunOutput
+from agno.tools.mcp import MCPTools
+from agno.models.ollama import Ollama
+from agno.models.cohere import Cohere
+from agno.models.aws import AwsBedrock
+from rich.pretty import pprint
+from rich import print as cprint
+from dotenv import load_dotenv
+import warnings
+warnings.filterwarnings("ignore")
+load_dotenv()
+# Acessing Locally Hosted Models through Ollama
+def llmOllama():
+    return Ollama(id="qwen2.5:1.5b") # "llama3.2:3b",
+# Accessing remotely hosted models through API key
+def llmAWS():
+    return AwsBedrock(id="amazon.nova-lite-v1:0", 
+                    aws_region="us-east-1", 
+                    temperature=0.9)
+def llmCohere():
+    return Cohere(id='command-a-03-2025',
+                temperature=0.9)
+                
+async def run_mcp_agent() -> None:
+	'''Agno Agent with MCP Server Tools'''
+    print("Agno Agent with MCP Server Tools")
+    ## ------- Implementation Code goes here-------------
+async def main():
+    print("-----Agno + MCP Demo------")
+    await run_mcp_agent()
+if __name__ == "__main__":
+    asyncio.run(main())
+
+
+...
+async def run_mcp_agent() -> None:
+    '''Agno Agent with MCP Server Tools'''
+    print("Agno Agent with MCP Server Tools")
+    # Initialize the MCP tools using Streamable-HTTP Transport
+    mcp_tools_server1 = MCPTools(url="http://127.0.0.1:8001/toolserver",transport="streamable-http")
+...
+
+
+
+...
+	# Connect to the MCP server
+    await mcp_tools_server1.connect()
+    print("Available MCP Tools:")
+    print('#'*100)
+    print("\nTools:")
+    for t in tools:
+        print('Tool Name:',t.name)
+        print('Tool Descriptions:',t.description)
+        print('='*50)
+    print('#'*100)   
+...
+
+
+
+...
+	# Uncomment to observe the 'call_tool' partial functions as entrypoints bound to the MCP Tools 
+    # that are to be executed when the corresponding tool call is predicted by LLM of the Agent
+    # In Python, functools.partial is a utility used for partial function application. 
+    # It allows you to "freeze" a portion of a function's arguments or keywords, 
+    # creating a new object with a simplified signature.
+    # It creates a new callable that behaves like the original function but with some arguments already set.
+    # print("Tools with Corresponding Call_Tool Partial Fuctions:")
+    # print('='*100)
+    # funcs = mcp_tools_server1.get_functions()
+    # for t,f in funcs.items():
+    #     print('Tool Name:',t)
+    #     pprint(f)
+    #     print('-'*50)
+    # print('='*100)
+...    
+
+
+
+...
+    # Initialize Agent with LLM and MCP Tools
+    agent = Agent(  
+                    model=llmCohere(),
+                    markdown=True, 
+                    tools=[mcp_tools_server1]
+                )
+...
+
+
+
+...
+		try:
+            # Main chat loop
+            while True:
+                # Get user input
+                user_input = input("\nYou: ")
+                # Check for exit command
+                if user_input.lower() in ["exit", "quit", ""]:
+                    print("Ending conversation...")
+                    break
+                # Get response from agent
+                try:
+                    # Run the agent with the user input (memory handling is automatic)
+                    response: RunOutput = await agent.arun(user_input)
+                    cprint(f"[bright_yellow]\nFinal Agent Response:[/bright_yellow]")
+                    print("\nAssistant: ", end="", flush=True)
+                    cprint(f"[bright_yellow]{response.content}[/bright_yellow]")
+                    print()
+                except Exception as e:
+                    print(f"\nError: {e}")
+    finally:
+        # Resource Clean up
+        print("Cleaning")
+        await mcp_tools_server1.close()	
+...
+
+
+
+
+import asyncio
+from agno.agent import Agent, RunOutput
+from agno.tools.mcp import MultiMCPTools
+from agno.models.ollama import Ollama
+from agno.models.cohere import Cohere
+from agno.models.aws import AwsBedrock
+import warnings
+warnings.filterwarnings("ignore")
+from rich import print as cprint
+from dotenv import load_dotenv
+load_dotenv()
+# Acessing Locally Hosted Models through Ollama
+def llmOllama():
+    return Ollama(id="qwen2.5:1.5b") # "llama3.2:3b",
+# Accessing remotely hosted models through API key
+def llmAWS():
+    return AwsBedrock(id="amazon.nova-lite-v1:0", 
+                    aws_region="us-east-1", 
+                    temperature=0.9)
+def llmCohere():
+    return Cohere(id='command-a-03-2025',
+                temperature=0.9)
+async def run_mcp_agent() -> None:
+    '''Agno Agent with MCP Server Tools'''
+    print("Agno Agent with Multi-MCP Server Tools")
+    # Initialize the MultiMCP tools
+    multi_mcp_tools = MultiMCPTools(
+        commands=["uv run server/demo_server.py"],
+        urls = ["http://127.0.0.1:8001/toolserver",
+                "http://127.0.0.1:8002/advtoolserver"],
+        urls_transports = ['streamable-http','streamable-http']
+    )
+    
+    # Connect to the Multiple MCP servers
+    await multi_mcp_tools.connect()
+    print("Available MCP Tools:")
+    print('='*100)
+    tools = multi_mcp_tools.get_functions()
+    for t,f in tools.items():
+        print('Tool Name:',t)
+        # Uncomment to observe the 'call_tool' partial functions as entrypoints bound to the MCP Tools
+        # print("Corresponding Call_Tool Partial Fuction:")
+        # pprint(f)
+        print('-'*50)
+    print('='*100)
+    # Initialize the Agent
+    agent = Agent(  model=llmCohere(),
+                    markdown=True, 
+                    tools=[multi_mcp_tools]
+                )
+    # Run the agent
+    try:
+            # Main chat loop
+            while True:
+                # Get user input
+                user_input = input("\nYou: ")
+                # Check for exit command
+                if user_input.lower() in ["exit", "quit", ""]:
+                    print("Ending conversation...")
+                    break
+                # Get response from agent
+                try:
+                    # Run the agent with the user input (memory handling is automatic)
+                    response: RunOutput = await agent.arun(user_input)
+                    cprint(f"[bright_yellow]\nFinal Agent Response:[/bright_yellow]")
+                    print("\nAssistant: ", end="", flush=True)
+                    cprint(f"[bright_yellow]{response.content}[/bright_yellow]")
+                    print()
+                except Exception as e:
+                    print(f"\nError: {e}")
+    finally:
+        # Resource Clean up
+        # Close the MCP connection
+        print("Cleaning")
+        await multi_mcp_tools.close()
+async def main():
+    print("-----Agno + MCP Demo------")
+    await run_mcp_agent()
+if __name__ == "__main__":
+    asyncio.run(main())
+    
+
+
+
+import asyncio
+from langchain_cohere import ChatCohere
+from langchain_mcp_adapters.tools import load_mcp_tools
+from langchain_core.prompts import ChatPromptTemplate
+from langchain.agents import create_agent
+from langchain_aws import ChatBedrockConverse
+from langchain_ollama.chat_models import ChatOllama
+from mcp import ClientSession
+from mcp.client.streamable_http import streamable_http_client
+from langgraph.checkpoint.memory import InMemorySaver
+from dotenv import load_dotenv
+from uuid import uuid4
+load_dotenv()
+# Accessing remotely hosted models through API key
+def llmAWS():
+    return ChatBedrockConverse(
+        model_id="amazon.nova-lite-v1:0", 
+        temperature=0.9, 
+        region_name="us-east-1")
+def llmCohere():
+    return ChatCohere(
+        id='command-a-03-2025',
+        temperature=0.9
+    )
+# Acessing Locally Hosted Models through Ollama
+def llmOllama():
+    return ChatOllama(
+        model = "llama3.2:3b",
+        temperature = 1.0,
+        num_predict = 1024,
+    )
+async def run_mcp_agent() -> None:
+    '''LangChain Agent with MCP Server Tools'''
+    print("LangChain Agent with MCP Server Tools")
+    ## Configuring MCP Client using Streamable-HTTP Transport
+    async with streamable_http_client("http://127.0.0.1:8002/advtoolserver") as (
+        read_stream,
+        write_stream,
+        _,
+    ):
+        # Create a session using the client streams
+        async with ClientSession(read_stream, write_stream) as session:
+            # Initialize the connection
+            await session.initialize()
+    
+            ## Connecting to MCP Server to get Tools
+            tools = await load_mcp_tools(session)
+            print('#'*100)
+            print("\nAvailable MCP Tools:")
+            for t in tools:
+                print('Tool Name:',t.name)
+                print('Tool Descriptions:',t.description)
+                print('='*50)
+            print('#'*100)
+            
+            # Creating Agent
+            agent = create_agent(
+                model=llmCohere(),
+                tools=tools,
+                checkpointer=InMemorySaver(),
+                system_prompt="You are a helpful AI assistant. Use the provided tools to answer questions."
+            )
+            try:
+                    # Main chat loop
+                    while True:
+                        # Get user input
+                        user_input = input("\nYou: ")
+                        # Check for exit command
+                        if user_input.lower() in ["exit", "quit", ""]:
+                            print("Ending conversation...")
+                            break
+                        # Get response from agent
+                        print("\nAssistant: ", end="", flush=True)
+                        try:
+                            # Run the agent with the user input (memory handling is automatic)
+                            response = await agent.ainvoke(
+                                                            {"messages": [{"role": "user", "content": user_input}]},
+                                                            config={'configurable':{'thread_id':uuid4().hex}}
+                                                        )
+                            print(response["messages"][-1].content)
+                        except Exception as e:
+                            print(f"\nError: {e}")
+            finally:
+                # Resource Clean up
+                print("Cleaning")
+                tools.clear()
+async def main():
+    print("-----LangChain + MCP Demo------")
+    await run_mcp_agent()
+if __name__ == "__main__":
+    asyncio.run(main())
+
+
+
+{
+    "tool_server":{
+        "transport": "streamable_http",
+        "url": "http://127.0.0.1:8001/toolserver"
+    },
+    "advanced_tool_server":{
+        "transport": "streamable_http",
+        "url": "http://127.0.0.1:8002/advtoolserver"
+    },
+    "elicitation_server":{
+        "transport": "streamable_http",
+        "url": "http://127.0.0.1:8006/elicitationserver"
+    }
+}
+
+
+import asyncio
+import json
+from langchain_cohere import ChatCohere
+from rich.pretty import pprint
+from rich import print as cprint
+from langchain_mcp_adapters.client import MultiServerMCPClient
+from langchain_core.prompts import ChatPromptTemplate
+from langchain.agents import create_agent
+from langchain_aws import ChatBedrockConverse
+from langchain_ollama.chat_models import ChatOllama
+from langgraph.checkpoint.memory import InMemorySaver
+from langchain_mcp_adapters.callbacks import Callbacks, CallbackContext
+from mcp.shared.context import RequestContext
+from mcp.types import ElicitRequestParams, ElicitResult
+from langchain.messages import ToolMessage
+from uuid import uuid4
+from dotenv import load_dotenv
+load_dotenv()
+# Accessing remotely hosted models through API key
+def llmAWS():
+    return ChatBedrockConverse(
+        model_id="amazon.nova-lite-v1:0", 
+        temperature=0.9, 
+        region_name="us-east-1")
+def llmCohere():
+    return ChatCohere(
+        id='command-a-03-2025',
+        temperature=0.9
+    )
+# Acessing Locally Hosted Models through Ollama
+def llmOllama():
+    return ChatOllama(
+        model = "llama3.2:3b",
+        temperature = 1.0,
+        num_predict = 1024,
+    )
+# Helper Function to Read Server Configurations from JSON File
+def read_json_as_dict(filename: str)->dict:
+    """
+    Reads a JSON file and returns its content as a Python dictionary.
+    """
+    try:
+        with open(filename, 'r') as file:
+            # Use json.load() to deserialize the file content into a Python object
+            data_dict = json.load(file)
+            return data_dict
+    except FileNotFoundError:
+        print(f"Error: The file '{filename}' was not found.")
+        return None
+    except json.JSONDecodeError:
+        print(f"Error: Could not decode JSON from the file '{filename}'. Check file formatting.")
+        return None
+# Elicitation Request Handler: Code for Elicitation Callback goes here----------------------
+async def on_elicitation(
+    mcp_context: RequestContext,
+    params: ElicitRequestParams,
+    context: CallbackContext,
+) -> ElicitResult:
+    """
+    Handle elicitation requests from MCP servers.
+    This function receives a request for user inputs and returns the user's response.
+    """
+    # Access the user message
+    user_message = params.message
+    cprint(f"[bright_yellow]Server Request: {user_message}[/bright_yellow]")
+    if hasattr(params, 'requestedSchema') and params.requestedSchema:
+        schema = getattr(params, 'requestedSchema', None)
+        # Handle structured input based on the requested schema
+        cprint("[bright_green]Requested Schema:[/bright_green]")
+        pprint(schema)
+        print()
+        schema_type = schema.get('type')
+        if schema_type == 'object':
+            properties = schema.get('properties', {})
+            cprint(f"[green_yellow]Expecting {schema_type} with fields: {list(properties.keys())}[/green_yellow]")
+            # Collect structured data for each property
+            user_data = {}
+            required_fields = []
+            for field_name, field_def in properties.items():
+                mandatory_field, field_type = 'Optional', 'Undefined'
+                if 'type' in field_def.keys():
+                    field_type = field_def.get('type', 'string')
+                    mandatory_field= ' *(Mandatory Field)'
+                    required_fields.append(field_name)
+                else:
+                    if 'anyOf' in field_def.keys():
+                        field_type = field_def.get('anyOf')[0]['type']
+                field_description = field_def.get('description', '')
+                prompt = f"{field_name} ({field_type} - {field_description} - {mandatory_field}):"
+                # Display the message to the user and collect their input
+                value = input(prompt)
+                # Perform type conversion on collected input based on field type 
+                if field_type == 'string':
+                    value = value.lower().strip() if value else None
+                elif field_type == 'number':
+                    value = float(value) if value else None
+                elif field_type == 'integer':
+                    value = int(value) if value else None
+                elif field_type == 'boolean':
+                    value = value.lower() in ('true', '1', 'yes') if value else None
+                
+                user_data[field_name] = value
+            
+            # Validate required fields
+            missing_fields = [field for field in required_fields 
+                                if field not in user_data or not user_data[field]]
+            if missing_fields:
+                cprint(f"[bright_red]]Missing required fields: {missing_fields}[/bright_red]")
+                return ElicitResult(action="cancel")
+            
+            # Return the elicitation result
+            return ElicitResult(action="accept", content=user_data)
+async def run_mcp_agent() -> None:
+    '''LangChain Agent with MCP Server Tools'''
+    print("LangChain Agent with MCP Server Tools")
+    ##---------MCP Client and Agent Implementation Code goes here-----------------
+    ## Configuring Multi-Server MCP Client with Multiple MCP Servers
+    config_file = "configs/mcpservers.json"
+    configs = dict(read_json_as_dict(config_file))
+    pprint(configs)
+    client = MultiServerMCPClient(configs,
+                                  callbacks=Callbacks(on_elicitation=on_elicitation))
+    ## Tools from Multiple MCP Servers
+    tools = await client.get_tools()   
+    print('#'*100)
+    print("\nTools:")
+    for t in tools:
+        print('Tool Name:',t.name)
+        print('Tool Descriptions:',t.description)
+        print('='*50)
+    print('#'*100)
+	# Uncomment to observe the 'call_tool' coroutines bound to the MCP Tools 
+    # that are to be executed when the corresponding tool call is predicted by LLM of the Agent
+    # In Python, a 'coroutine' object is an instance returned when you call a function defined with 
+    # the async def keyword. Unlike regular functions, calling an asynchronous function does not 
+    # execute its body immediately; instead, it creates a "lazy" object that represents a task to be 
+    # performed later.
+    # print("Tools with Corresponding Call_Tool Fuctions:")
+    # pprint(tools)
+    # Initialize Agent with System Prompt, LLM, Memory, and Tools
+    agent = create_agent(
+        model=llmCohere(),
+        tools=tools,
+        checkpointer=InMemorySaver(),
+        system_prompt="You are a helpful AI assistant. Use the provided tools to answer questions."
+    )
+    try:
+            # Main chat loop
+            while True:
+                # Get user input
+                user_input = input("\nYou: ")
+                # Check for exit command
+                if user_input.lower() in ["exit", "quit", ""]:
+                    print("Ending conversation...")
+                    break
+                # Get response from agent
+                
+                try:
+                    cprint(f"[bright_yellow]\nIntermediate Event Updates from Agent:[/bright_yellow]")
+                    # Run the agent with the user input (memory handling is automatic)
+                    async for event in agent.astream({"messages": [{"role": "user", "content": user_input}]}, 
+                                              stream_mode="values", 
+                                              config={'configurable':{'thread_id':uuid4().hex}}):
+                        event["messages"][-1].pretty_print()
+                    
+                    # Printing Final Response from the Agent
+                    print('================================================================================')
+                    cprint(f"[bright_yellow]\nFinal Agent Response:[/bright_yellow]")
+                    print("\nAssistant: ", end="", flush=True)
+                    cprint(f"[bright_yellow]{event["messages"][-1].content}[/bright_yellow]")
+                except Exception as e:
+                    print(f"\nError: {e}")
+    finally:
+        # Resource Clean up
+        print("Cleaning")
+        tools.clear()
+async def main():
+    print("-----LangChain + MCP Demo------")
+    await run_mcp_agent()
+if __name__ == "__main__":
+    asyncio.run(main())
+
+
+
+import asyncio
+import json
+from langchain_cohere import ChatCohere
+from langchain_mcp_adapters.client import MultiServerMCPClient
+from langchain_core.prompts import ChatPromptTemplate
+from langgraph.prebuilt import ToolNode, tools_condition
+from langgraph.graph import StateGraph, MessagesState, START, END
+from dotenv import load_dotenv
+from langchain_aws import ChatBedrockConverse
+from langchain_ollama.chat_models import ChatOllama
+from uuid import uuid4
+from rich.pretty import pprint
+from rich import print as cprint
+# Reading and setting 
+load_dotenv()
+# Accessing remotely hosted models through API key
+def llmAWS():
+    return ChatBedrockConverse(
+        model_id="amazon.nova-lite-v1:0", 
+        temperature=0.9, 
+        region_name="us-east-1")
+def llmCohere():
+    return ChatCohere(
+        id='command-a-03-2025',
+        temperature=0.9
+    )
+# Acessing Locally Hosted Models through Ollama
+def llmOllama():
+    return ChatOllama(
+        model = "llama3.2:3b",
+        temperature = 1.0,
+        num_predict = 1024,
+    )
+def read_json_as_dict(filename: str)->dict:
+    """
+    Reads a JSON file and returns its content as a Python dictionary.
+    """
+    try:
+        with open(filename, 'r') as file:
+            # Use json.load() to deserialize the file content into a Python object
+            data_dict = json.load(file)
+            return data_dict
+    except FileNotFoundError:
+        print(f"Error: The file '{filename}' was not found.")
+        return None
+    except json.JSONDecodeError:
+        print(f"Error: Could not decode JSON from the file '{filename}'. Check file formatting.")
+        return None
+async def run_mcp_agent() -> None:
+    '''LangGraph StateGraph Agent with MCP Server Tools'''
+    print("LangGraph StateGraph Agent with Multiple-MCP Server Tools")
+    ## Configuring Multi-Server MCP Client with Multiple MCP Servers
+    config_file = "configs/toolservers.json"
+    configs = dict(read_json_as_dict(config_file))
+    pprint(configs)
+    client = MultiServerMCPClient(configs)
+    ## Connecting to Multiple MCP Servers to get Tools
+    tools = await client.get_tools()
+    print('#'*100)
+    print("\nTools:")
+    for t in tools:
+        print('Tool Name:',t.name)
+        print('Tool Descriptions:',t.description)
+        print('='*30)
+    print('#'*100)
+    # Creating Agent
+    # Using LangGraph StateGraph
+    def call_model(state: MessagesState):
+        response = llmCohere().bind_tools(tools).invoke(state["messages"])
+        return {"messages": response}
+    
+    graph= StateGraph(MessagesState)
+    graph.add_node("call_model",call_model)
+    graph.add_node("tools",ToolNode(tools))
+    graph.add_edge(START,"call_model")
+    graph.add_conditional_edges("call_model",tools_condition)
+    graph.add_edge("tools","call_model")
+    graph.add_edge('call_model',END)
+    workflow = graph.compile()
+    try:
+        # Main chat loop
+        config={'configurable':{'thread_id':uuid4().hex}}
+        while True:
+            # Get user input
+            user_input = input("\nYou: ")
+            # Check for exit command
+            if user_input.lower() in ["exit", "quit", ""]:
+                print("Ending conversation...")
+                break
+            # Get response from agent
+            try:
+                inputs = {"messages": [{"role": "user", "content": user_input}]}
+                # Run the Graph with the user input (memory handling is automatic)
+                async for event in workflow.astream(inputs, stream_mode="values", config=config):
+                    event["messages"][-1].pretty_print()
+                    
+                # Printing Final Response from the Agent
+                print('================================================================================')
+                cprint(f"[bright_yellow]\nFinal Agent Response:[/bright_yellow]")
+                print("\nAssistant: ", end="", flush=True)
+                cprint(f"[bright_yellow]{event["messages"][-1].content}[/bright_yellow]")
+            except Exception as e:
+                print(f"\nError: {e}")
+    finally:
+        # Resource Clean up
+        print("Cleaning")
+        tools.clear()
+async def main():
+    print("-----LangGraph Workflow + MCP Demo------")
+    await run_mcp_agent()
+if __name__ == "__main__":
+    asyncio.run(main())
+
+
+
+# Necessary Imports ------------------------------------------
+from mcp.server.fastmcp import FastMCP
+from typing import Annotated
+import pandas as pd
+import numpy as np
+from rich import print as cprint
+# For Recent releases of MCP Python SDK use:
+# from mcp.server.mcpserver import MCPServer
+# Create an MCP server
+## - Use 'MCPServer(...)' instead of FastMCP(...) for recent MCP-Python-SDK versions
+ 
+mcp = FastMCP("mcp_tool_server",  
+              port=8111, 
+              stateless_http=False, 
+              streamable_http_path="/mcptoolserver", 
+              host="127.0.0.1", 
+              warn_on_duplicate_tools=True)
+ 
+# Adding tools
+@mcp.tool("search_movie")
+def search_movie(genre: Annotated[str, "genre of the movie"] | None = None,
+                        year: Annotated[int, "year of release of the movie"] | None = None,
+                        rating: Annotated[float, "minimum rating of the movie"] | None = None ) -> list[dict]:
+    """Search movies by genre, year and rating.
+    Arguments:
+        genre (str, optional): The genre of the movie to filter by. Defaults to None.
+        year (integer, optional): The year of release of the movie to filter by. Defaults to None.
+        rating (float, optional): The minimum rating of the movie to filter by. Defaults to None. Any number between 0.0 to 10.0, e.g., 4.5, 7.5, 8.6 etc. 
+    """
+
+ 
+
+    dataframe = pd.read_csv("mcp_server/csvs/movies.csv")
+    query_conditions = pd.Series([True] * len(dataframe)) # Start with all True
+    if genre:
+        query_conditions = query_conditions & (dataframe['Genre'].str.lower().str.contains(genre.lower(),case=False))
+    if year:
+        query_conditions = query_conditions & (dataframe['Year'] == int(year))
+    if rating:
+        query_conditions = query_conditions & (dataframe['Rating'] >= float(rating))    
+    result = dataframe[query_conditions].to_dict(orient='records')
+    cprint("[cyan1]MCP Tool: search_movie called with:[/cyan1]", f"[green_yellow]Genre: {genre}, Year: {year}, Rating: {rating}[/green_yellow]")
+    cprint("[cyan1]Rows returned:[/cyan1]", f"[green_yellow]{len(result)}[/green_yellow]")
+    return result
+
+ 
+
+@mcp.tool(name="search_stock")
+def search_stock(product_type: Annotated[str, "type of the product"] | None = None,
+                      brand_name: Annotated[str, "brand name of the product"] | None = None,
+                        min_quantity: Annotated[str | int, "minimum quantity of the product in stock"] | None = None) -> list[dict]:
+    """Search Products in Stock based on Product Type, Brand, and/or minimum quantity in stock of the product.
+    Arguments:
+        product_type (str, optional): Type of the product, domain or product class.
+        brand_name (str, optional): Brand name or Manufacturer of the product.
+        min_quantity (float, optional): Minimum quantity of the product in stock. 
+    """
+    dataframe = pd.read_csv("mcp_server/csvs/productdb.csv")
+    query_conditions = pd.Series([True] * len(dataframe)) # Start with all True
+
+ 
+
+    if product_type:
+        query_conditions = query_conditions & (dataframe['Product_Type'].str.lower().str.contains(product_type.lower()))
+    if brand_name:
+        query_conditions = query_conditions & (dataframe['Brand'].str.lower().str.contains(brand_name.lower()))
+    if min_quantity:
+        try:
+            query_conditions = query_conditions & (dataframe['Quantity_in_Stock']>= int(min_quantity))
+        except Exception:
+            pass
+            
+    result = dataframe[query_conditions].to_dict(orient='records')
+    cprint("[cyan1]MCP Tool 'search_stock' called with:[/cyan1]", f"[green_yellow]Product Type: {product_type}, Brand Name: {brand_name}, Minimum Quantity: {min_quantity}[/green_yellow]")
+    cprint("[cyan1]Rows returned:[/cyan1]", f"[green_yellow]{len(result)}[/green_yellow]")
+    return result
+ 
+# Run the MCP Server:
+def main():
+    """Entry point for the direct execution server."""
+    mcp.run(transport="streamable-http")
+ 
+if __name__ == "__main__":
+    main()
+ 
+
+ # Defining the Movie and Stock Product Information Agent----------------------------------
+class McpAgent:
+ 
+    SUPPORTED_CONTENT_TYPES=['text','text/plain']
+ 
+    def __init__(self,tools,path:str=''):
+        self.model = llmCohere()
+        self.tools = tools
+        self.agent = self.get_agent(path)
+ 
+    def handle_erros(self,e:ValueError) ->str:
+        return 'Invalid Input provided'
+ 
+    def get_agent(self,path:str=''):
+        instructions = """You are a helpful  assistant ,which can answer queries on products in stock and movies
+        ## INSTRUCTIONS:
+        # - Always use the provided tools to answer questions
+        # - Provide well structured output, use lists, bullet point and tables as required.
+        """
+        agent= Agent(
+            name="Movie and Stock Product Information Agent",
+            description='Performs search on Movie and Stock Product databases to retrieve related information',
+            model= self.model,
+            tools= self.tools,
+            markdown= True,
+            instructions=[instructions],
+            db= SqliteDb(session_table="agent_sessions",
+                         db_file=f"{path}/agno_mcp_agent/agno_sessions/agno_agent_storage.db"),
+            add_history_to_context=True,
+            read_chat_history= True,
+            num_history_runs=3,
+        )
+        return agent
+    # ------ Implementation code continues------------------------
+
+
+      #--- Invoke Method of the Movie and Stock Product Information Agent----------------------
+    async def invoke(self, query, context_id) -> dict[str, Any]:
+        print(query)
+        response: RunOutput = await self.agent.arun(query,session_id=context_id)
+        message = response.messages[-1].content
+        pprint(response)
+        status = response.status
+        print(message, status)
+        return {
+                    'is_task_complete': True,
+                    'content':message,
+                }
+
+
+                # Necessary Imports ------------------------------------------
+from a2a.server.agent_execution import AgentExecutor, RequestContext
+from a2a.server.events import EventQueue
+from a2a.server.tasks import TaskUpdater
+from agno.tools.mcp import MultiMCPTools
+from a2a.utils import new_task
+from a2a.utils.message import new_agent_text_message
+## For a2a-sdk >= 1.0.0
+# from a2a.helpers import new_task, new_text_message, new_task_from_user_message
+from rich.pretty import pprint
+from rich import print as cprint
+import logging
+from a2a.types import (
+    InternalError,
+    Part,
+    TextPart, # Deprecated  in a2a-sdk >= 1.0
+    TaskState,
+    UnsupportedOperationError,
+)
+from a2a.utils.errors import ServerError
+from mcp_agent import McpAgent
+ 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+async def get_mcp_tools():
+        # Configuration for the MCP Servers
+        multi_mcp_tools = MultiMCPTools(
+            urls=["http://127.0.0.1:8111/mcptoolserver"],
+            urls_transports= ['streamable-http']
+        )
+        
+        #Connect to the Multiple MCP Servers
+        await multi_mcp_tools.connect()
+        return multi_mcp_tools
+
+
+        async def get_mcp_tools():
+        # Configuration for the MCP Servers
+        multi_mcp_tools = MultiMCPTools(
+            urls=["http://127.0.0.1:8111/mcptoolserver"],
+            urls_transports= ['streamable-http']
+        )
+        
+        #Connect to the Multiple MCP Servers
+        await multi_mcp_tools.connect()
+        return multi_mcp_tools
+
+
+# Implementation of the Agent Executor that provides the MCP Server hosted Tools to the Agent
+class MCPAgentExecutor(AgentExecutor):
+    """Websearch Remote Agent Implementation."""
+    def __init__(self):
+        self.agent = None
+    
+    async def execute(
+        self,
+        context: RequestContext,
+        event_queue: EventQueue,
+    ) -> None:
+        # Checking if Context Exists ------------------------------------------
+        if not context:
+            raise ServerError(error=InvalidRequestError())
+        
+        # Getting the Message (query) sent from the A2A Client ----------------
+        query = context.get_user_input()
+        
+        task = context.current_task
+        cprint(f"[bright_yellow]{'='*20} Context Information {'='*30}[/bright_yellow]")
+        cprint("[cyan1]Context Id:[/cyan1]",f"[green_yellow]{context.context_id}[/green_yellow]")
+        cprint("[cyan1]query:[/cyan1]",f"[green_yellow]{query}[/green_yellow]")
+        cprint("[cyan1]Task Id:[/cyan1]",f"[green_yellow]{context.task_id}[/green_yellow]")
+        cprint("[cyan1]Context Task:[/cyan1]",f"[green_yellow]{task}[/green_yellow]")
+        cprint("[cyan1]Context Message:[/cyan1]",f"[green_yellow]{context.message}[/green_yellow]")
+        cprint(f"[bright_yellow]{'-'*70}[/bright_yellow]")
+        
+        # Creating a New Task if Task does not exists. And adding the same to the event queue.
+        if not task:
+            task = new_task(context.message)  # type: ignore
+            await event_queue.enqueue_event(task)
+        # Creating the Task Updater for the Current Task (Task Id) and Context (Context Id)---------
+        # - Which adds the Task Updates (Status or concrete Artifacts - responses) to the Event Queue
+        updater = TaskUpdater(event_queue, task.id, task.context_id)
+        # Invoking the Agent with the receieved query -----------------------------
+        try:
+            tools= await get_mcp_tools()
+            agent=McpAgent([tools],"./")
+            result= await agent.invoke(query,task.context_id)
+            cprint("[cyan1]Agent Response--------------------------------[/cyan1]")
+            pprint(result)
+            is_task_complete = result['is_task_complete']
+            if is_task_complete:
+                await updater.add_artifact(
+                        [Part(root=TextPart(text=result['content']))],
+                        name='movie_product_search_result',
+                    )
+                await updater.complete()
+        except Exception as e:
+            logger.error(f'An error occurred while getting the response: {e}')
+            raise
+        finally:
+            await tools.close()
+            
+    async def cancel(
+        self, context: RequestContext, event_queue: EventQueue
+    ) -> None:
+        raise ServerError(error=UnsupportedOperationError())
+ 
+
+ # Necessary Imports ------------------------------------------
+import sys, httpx, click, logging, uvicorn
+# For a2a-sdk<1.0.0
+from a2a.server.apps import A2AStarletteApplication
+## For a2a-sdk >= 1.0.0
+## - As the A2AStarletteApplication wrapper has been completely removed in the a2a-python SDK v1.0 release.
+## - In v1.0, the wrapper classes (A2AStarletteApplication, A2AFastApiApplication) are replaced by native route factory functions. 
+## - To set up an A2A server, the Python SDK provides a route factory and helper functions (create_agent_card_routes, create_jsonrpc_routes, create_rest_routes).
+## - We need to use the route factory to create routes for the A2A server's services. 
+## - These routes can be attached natively to popular frameworks like Starlette and FastAPI, which give you better control over authentication, logging, and other features.
+## - Therefore, We must now attach these routes directly to a standard Starlette or FastAPI application instance.
+#--------------------------------------------------------
+# from a2a.server.routes import (
+#    create_agent_card_routes,
+#    create_jsonrpc_routes,
+# )
+# from starlette.applications import Starlette
+#--------------------------------------------------------
+from a2a.server.request_handlers import DefaultRequestHandler
+from a2a.server.tasks import InMemoryTaskStore
+import uuid
+from a2a.types import (
+    AgentCapabilities,
+    AgentCard,
+    AgentSkill,
+    AgentInterface,
+)
+from a2a.server.tasks import (
+    BasePushNotificationSender,
+    InMemoryPushNotificationConfigStore,
+    InMemoryTaskStore,
+)
+from agent_executor import MCPAgentExecutor
+from mcp_agent import McpAgent
+from dotenv import load_dotenv
+load_dotenv()
+
+ 
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+ 
+
+# A2A Server Implementation ==================================================================
+@click.command()
+@click.option('--host', 'host', default='127.0.0.1')
+@click.option('--port', 'port', default=8048)
+def main(host, port):
+    try:
+        # Defining Agent Skills, capabilities and Agent Card ------------------------------
+        
+        ## Defining the Agent Capabilities
+        capabilities = AgentCapabilities(streaming=False, push_notifications=False)
+        ## Defining the Agent Skills
+        movie_search_skill = AgentSkill(
+            id='movie_search',
+            name='Movie Search',
+            description="""Perform search on Movie database to retrieve related information.
+Search movies by genre, year and rating. 
+All search criterion or filters are optional.""",
+            tags=['Movie Information', 'Search by Genre', 'Search by Year of Release', 'Search by Rating'],
+            examples=['Suggest some good comedy movies released in 2016?',
+                    'which are the action movies rated above 7?'],
+        )
+        product_search_skill = AgentSkill(
+            id='product_search',
+            name='Stock Product Search',
+            description="""Perform search Stock Product databases to retrieve related information
+Search Products in Stock based on Product Type, Brand, and/or minimum quantity in stock of the product.
+All search criterion or filters are optional.""",
+            tags=['Product Information', 'Search by Brand Name', 'Search by Product Type', 'Search by Minimum Quantity in Stock'],
+            examples=['Suggest some Home Goods products?',
+                    'Which Electronics products have stock greater than 100?'],
+        )
+        ## Defining the Agent Card with Skills and Capabilitties---------------------------
+        agent_card = AgentCard(
+            # Basic identity information of A2A server
+            name='Movie and Stock Product Information Agent',
+            description='Helps with searching and retrieving information from internal movie and stock database to answer user queries on movies and products in stock',
+            url=f'http://{host}:{port}/',
+            version='1.0.0',
+            # Default Media Types for the agent's interactions
+            default_input_modes=McpAgent.SUPPORTED_CONTENT_TYPES,
+            default_output_modes=McpAgent.SUPPORTED_CONTENT_TYPES,
+            # Supported A2A features (like streamin, push-notifications or extended agent card)
+            capabilities=capabilities,
+            ## For a2a-sdk >= 1.0.0:
+            ## Ordered list of endpoints and protocols where the service can be reached
+            # supported_interfaces=[
+            #     AgentInterface(
+            #         protocol_binding='JSONRPC',
+            #         url='http://127.0.0.1:9999',
+            #     )
+            # ],
+            skills=[movie_search_skill, product_search_skill],
+        )
+        ##----------------------------------------------------------------------------------
+        
+        ## Creating Push Notification Capability--------------------------------------------
+        httpx_client = httpx.AsyncClient(timeout=httpx.Timeout(60.0))
+        push_config_store = InMemoryPushNotificationConfigStore()
+        push_sender = BasePushNotificationSender(httpx_client=httpx_client,
+                        config_store=push_config_store)
+            
+        # Creating the A2A Request Handler-------------------------------------------------
+        request_handler = DefaultRequestHandler(
+            # Agent executor handles the execution of the client requests
+            agent_executor=MCPAgentExecutor(),
+            # The task_store is used to store and manage tasks
+            task_store=InMemoryTaskStore(),
+            ## For a2a-sdk >= 1.0.0:
+            ## Public agent card for unauthenticated users
+            # agent_card = agent_card,
+            push_config_store=push_config_store,
+            push_sender= push_sender
+        )
+            
+        # For a2a-sdk < 1.0.0:
+        # Creating the A2A Starlette Application with the Agent Card and Request Handler
+        # ------------------------------------------------------------------------------
+        server = A2AStarletteApplication(
+            agent_card=agent_card,
+            http_handler=request_handler
+        )
+        ## For a2a-sdk >= 1.0.0:
+        # ------------------------------------------------------------------------------
+        ## Creating the routes for the A2A server
+        ## These routes handle the incoming requests from the clients
+        ## and the outgoing responses to the clients
+        # routes = []
+        ## Create routes for the agent card
+        # routes.extend(create_agent_card_routes(agent_card))
+        ## Create routes for the JSONRPC protocol
+        ## Alternatively, you can choose GRPC or HTTP_JSON as protocol bindings
+        ## based on your requirements
+        # routes.extend(create_jsonrpc_routes(request_handler, '/'))
+        ## Create a web app with the defined routes
+        ## Here we are using Starlette, a lightweight ASGI web framework to serve the agent
+        ## Alternatively, you can choose FastAPI or other ASGI frameworks
+        # server = Starlette(routes=routes)       
+        
+        ## Run the Server
+        ## Uvicorn is a production-ready ASGI HTTP server
+        ## ------------------------------------------------------
+        # Running the Uvicorn Server For a2a-sdk < 1.0.0:
+        uvicorn.run(server.build(), host=host, port=port)
+        # ------------------------------------------------------
+        # Running the Uvicorn Server For a2a-sdk >= 1.0.0:
+        # uvicorn.run(server, host=host, port=port)
+       
+    except Exception as e:
+        logger.error(f'An error occurred during server startup: {e}')
+        sys.exit(1)
+ 
+if __name__ == '__main__':
+    main()
+ 
+
+
+ import logging
+import httpx
+from a2a.client import A2AClient
+from collections.abc import Callable
+from a2a.types import (
+    AgentCard,
+    SendMessageRequest,
+    SendMessageResponse,
+    Task,
+    TaskArtifactUpdateEvent,
+    TaskStatusUpdateEvent,
+)
+TaskCallbackArg=Task|TaskStatusUpdateEvent|TaskArtifactUpdateEvent
+TaskUpdateCallback=Callable[[TaskCallbackArg,AgentCard],Task]
+logger=logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+class RemoteAgentConnection:
+    """A class to hold the connection to the remote agents."""
+    def __init__(self,agent_card:AgentCard,agent_url:str):
+        logger.info(f'agent_card: {agent_card}')
+        logger.info(f'agent_url: {agent_url}')
+        self.httpx_client=httpx.AsyncClient(timeout=300)
+        self.agent_client=A2AClient(self.httpx_client,agent_card,url=agent_url)
+        self.card=agent_card
+    def get_agent(self)->AgentCard:
+        return self.card
+    
+    async def send_message(self,message_request:SendMessageRequest)->SendMessageResponse:
+        return await self.agent_client.send_message(message_request)
+
+
+        {
+    "websearchServer":"http://127.0.0.1:8024",
+    "agnomcpServer":"http://127.0.0.1:8048"  
+}
+
+
+ Host (routing) Agent Implementation-------------------------------
+class HostAgent:
+    """The host agent.
+    This is the agent responsible for choosing which remote agents to send the tasks to and coordinate their work."""
+    def __init__(self,task_callback: TaskUpdateCallback |None=None):
+        self.task_callback=task_callback
+        self.remote_agent_connections:dict[str,RemoteAgentConnection]={}
+        self.cards:dict[str,AgentCard]={}
+        self.agents:str=""
+ 
+
+    def list_remote_agents(self):
+        """List all the availabe remote agents you can use to delegate the task."""
+        if not self.remote_agent_connections:
+            return []
+        else:
+            remote_agent_info =[]
+            for card in self.cards.values():
+                logger.info(
+                    'Found agent card: %s',card.model_dump(exclude_none=True)
+                )
+                logger.info("*"*100)
+                # Fetching Agent Skills from Agent Card
+                agent_skills = card.skills
+                skills = []
+                for skill in agent_skills:
+                    skills.append({
+                        "skill_title": skill.name,
+                        "skill_description": skill.description,
+                        "skill_example": skill.examples if skill.examples else "Not Mentioned",
+                        "skill_tags": skill.tags if skill.tags else "Not Provided"
+                    })
+                # Creating Agent Information using Information from Agent Card
+                # - To be used in the Root Instruction under 'Available Agents' header
+                # - Which will give context to the Agnet's LLM to predict the right agent to delegate the Task to
+                remote_agent_info.append(
+                    {'name':card.name,'description':card.description,
+                     'skills': skills}
+                )
+            return remote_agent_info
+        
+    async def _async_init_components(self,remote_agent_addresses:list[str])->None:
+        """Asynchronous part of initialization."""
+        async with httpx.AsyncClient(timeout=httpx.Timeout(300.0)) as httpx_client:
+            # Initialize A2ACardResolver
+            for address in remote_agent_addresses:
+                card_resolver= A2ACardResolver(
+                    httpx_client=httpx_client,
+                    base_url=address
+                )
+                try:
+                    card=(
+                        await card_resolver.get_agent_card()
+                    )
+                    remote_connection=RemoteAgentConnection(
+                        agent_card=card,
+                        agent_url=address
+                    )
+                    self.remote_agent_connections[card.name]=remote_connection
+                    self.cards[card.name]=card
+                except httpx.ConnectError as e:
+                    logger.debug(
+                        'ERROR: Failed to get agent card from %s: %s',
+                        address,
+                        e
+                    )
+                except Exception as e:
+                    logger.debug(
+                        'ERROR: Failed to initialize connection for  %s: %s',
+                        address,
+                        e
+                    )
+        print("Successfully fetched public agent cards")
+        for agent_name,card in self.cards.items():
+            print(agent_name)
+            print("-"*100)
+            pprint(card)
+        agent_info =[]
+        for agent_detail_dict in self.list_remote_agents():
+            agent_info.append(json.dumps(agent_detail_dict))
+        self.agents='\n'.join(agent_info)    
+ 
+    @classmethod
+    async def create(
+        task_callback: TaskUpdateCallback|None=None
+    ) -> 'HostAgent':
+        """Create and asynchronously initialize an instance of the host agent"""
+        instance= HostAgent(task_callback)
+        serverConfigFileName="langchain_host_agent/serverConfigs.json"
+        a2aServerURLs=read_json_as_dict(serverConfigFileName)
+        pprint(a2aServerURLs)
+        remote_agent_addresses=a2aServerURLs.values()
+        await instance._async_init_components(remote_agent_addresses)
+        return instance
+    
+    def create_agent(self)->CompiledStateGraph:
+        """Create an instance of an agent"""
+        return create_agent(
+            model=llmCohere(),
+            name='host_agent',
+            system_prompt=self.root_instruction(),
+            checkpointer=InMemorySaver(),
+            tools=[
+                self.list_remote_agents,
+                self.send_message,
+            ]
+        )
+            
+    def root_instruction(self) -> str:
+        """Generate the root instruction for the HostAgent."""
+        return f"""
+**Role:** You are an expert delegator that can delegate the user request to the appropriate specialized remote agents. 
+          This agent orchestrates the decomposition of the user request into task that can be performed by the remote agents
+Discovery: 
+- You can use `list_remote_agents` to list the available remote agents you can use to delegate the task.
+ 
+**Task Delegation:**
+- For actionable requests, you can use `send_message` to interact with remote agents to take action, to assign actionable tasks to remote agents..
+ 
+Be sure to include the remote agent name when you respond to the user.
+Important:
+# **Tool Reliance:** Strictly rely on available tools to address user requests. Do not generate responses based on assumptions. If information is insufficient, request clarification from the user.
+# If you are not sure, please ask the user for more details.
+# **Prioritize Recent Interaction:** Focus on the most recent parts of the conversation primarily when processing requests.
+# **No Redundant Confirmations:** Do not ask remote agents for confirmation of information or actions.
+# **Focused Information Sharing:** Provide remote agents with only relevant contextual information. Avoid extraneous details.
+# **Transparent Communication:** Always present the complete and detailed response from the remote agent to the user.
+# **Autonomous Agent Engagement:** Never seek user permission before engaging with remote agents. If multiple agents are required to fulfill a request, connect with them directly without requesting user preference or confirmation.
+ 
+**Available Agents:**
+{self.agents}
+"""
+ 
+    async def send_message(
+            self,
+            agent_name:str,
+            message:str,
+            tool_context: ToolRuntime
+    ):
+        """Sends a task either streaming (if supported) or non-streaming.
+ 
+        This will send a message to the remote agent named agent_name.
+ 
+        Args:
+          agent_name: The name of the agent to send the task to.
+          message: The message to send to the agent for the task.
+          tool_context: The tool context this method runs in.
+ 
+        Yields:
+          A dictionary of JSON data.
+        """
+        if agent_name not in self.remote_agent_connections:
+            raise ValueError(f"Agent{agent_name}not founnd. {message}")
+        client=self.remote_agent_connections[agent_name]
+        if not client:
+            raise ValueError(f'Client not available for {agent_name}')
+        #pprint(tool_context.__dict__)
+        # Fetching the Thread Id from Tool Context and using it as Context ID for the Agent-to-Agent Communication
+        context_id = tool_context.config['configurable'].get('thread_id',None)
+        lastMsg = tool_context.state['messages'][-1]
+        task_id = tool_context.config['configurable'].get('task_id',None)
+        message_id=""
+        # Fetching the Message Id from Previous Message Metadata 
+        if 'id' in lastMsg.response_metadata:
+            message_id=lastMsg.response_metadata['id']
+        if not message_id:
+            message_id=str(uuid.uuid4())
+        pprint({'context_id':context_id,
+                'task_id':task_id,
+                'message_id':message_id})
+        payload={
+            'message': {
+                'role': 'user',
+                'parts': [
+                    {'type': 'text', 'text':message}
+                ],
+                'messageId': message_id,
+            },
+        }
+        if task_id:
+            payload['message']['taskId']=task_id
+        if context_id:
+            payload['message']['contextId']=context_id
+        message_request = SendMessageRequest(
+                        id=message_id, params=MessageSendParams.model_validate(payload)
+                    )
+        send_response : SendMessageResponse = await client.send_message(
+            message_request=message_request
+        )
+        #pprint(send_response)
+        logger.info(
+            'send_response',
+            send_response.model_dump_json(exclude_none=True,indent=2)
+        )
+        if not isinstance(send_response.root,SendMessageSuccessResponse):
+            logger.info('recived non successs response aborting the get task')
+            return None
+        if not isinstance(send_response.root.result,Task):
+            logger.info('received non-task response. aborting get task')
+            return None
+        result=send_response.root.result
+        if hasattr(result,'artifacts') and result.artifacts:
+            artifact=result.artifacts[0]
+        elif hasattr(result,'artifact') and result.artifact:
+            artifact=result.artifact
+        elif hasattr(result,'content') and result.content:
+            logger.info('Successfully retrieved response from A2A server')
+            content=result.content
+            return content
+        else:
+            logger.warning("No content found in a2a server response")
+            print("No response form a2a server")
+            return None
+        if artifact:
+            if hasattr(artifact,'parts') and artifact.parts:
+                part=artifact.parts[0]
+                if hasattr(part,'root') and part.root:
+                    content=part.root.text
+                    logger.info("Successfully retrieved response form A2A server")
+                    return content
+        return content
+ 
+
+
+ # Necessary Imports and Configurations--------------------------------
+import asyncio
+import gradio as gr
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
+from Host_Agent import HostAgent
+from langgraph.graph.state import CompiledStateGraph
+from collections.abc import AsyncIterator
+from pprint import pformat
+from uuid import uuid4
+import traceback
+from rich.pretty import pprint
+from rich import print as cprint
+ 
+APP_NAME="LANGRAPH_A2A_App"
+USER_ID='default_user'
+SESSION_ID=uuid4().hex
+ 
+class HostAgentExecutor:
+    def __init__(
+            self, 
+            agent: CompiledStateGraph, 
+            session_id: str, 
+            app_name: str, 
+            user_id:str
+    ):
+        self.agent = agent
+        self.session_id = session_id
+        self.app_name = app_name
+        self.user_id = user_id
+    
+    async def stream(
+            self, 
+            query,
+    ) -> str:
+        inputs = {'messages': [HumanMessage(content=query)],'status':'submitted'}
+        config = {'configurable': {'thread_id': self.session_id, 'user_id':self.user_id}}
+        try:
+            cprint(f"[bright_blue]Events: {'-'*50}[/bright_blue]")
+            async for event in self.agent.astream(inputs,config=config,stream_mode='values'):
+                cprint("[bright_yellow]Event Content: [/bright_yellow]",end="")
+                event=event['messages'][-1]
+                pprint(event)
+                cprint("[bright_yellow]------------------------------------------------------------------[/bright_yellow]")
+                if isinstance(event, AIMessage):
+                    if hasattr(event,'tool_calls') and event.tool_calls:
+                        formatted_call = f'```python\n{pformat(event.tool_calls[-1], indent=2, width=80)}\n```'
+                        pprint(
+                            {
+                                'role':'assistant',
+                                'content':f" **Tool Call: {event.tool_calls[-1]['name']}** \n{formatted_call}"
+                            }
+                        )
+                    else:
+                        final_response_text = ''
+                        if hasattr(event,'content') and event.content:
+                            final_response_text = event.content
+                        if final_response_text:
+                            pprint(
+                                {
+                                    "role":'assistant', "content":final_response_text
+                                }
+                            )
+                            return final_response_text
+                elif isinstance(event, ToolMessage):
+                    if (hasattr(event, 'artifact') and event.artifact):
+                        formatted_response_data = event.artifact
+                    else:
+                        formatted_response_data = event.content
+                    formatted_response = f'```json\n{pformat(formatted_response_data, indent=2, width=80)}\n```'
+                    pprint(
+                        {
+                            'role':'assistant',
+                            'content':f" **Tool Response from {event.name}**\n{formatted_response}"
+                        }
+                    )
+        except Exception as e:
+            cprint(f"[bright_red]Error in get_response_from_agent (Type: {type(e)}): {e}[/bright_red]")
+            return "An error occured while processing your request. Please check the server logs for details"
+
+async def run():
+    """Main Host Agent App."""
+    routing_agent_instance=await HostAgent.create()
+    agent = routing_agent_instance.create_agent()
+    hostAgent = HostAgentExecutor(agent, SESSION_ID, APP_NAME, USER_ID)
+
+ 
+
+    while True:
+        print("\n\n")
+        cprint("[green_yellow]Please enter your query[/green_yellow]")
+        user_input=input()
+        if user_input.lower()=="exit":
+            cprint('[green_yellow]bye-~[/green_yellow]')
+            break
+        else:
+            response = await hostAgent.stream(user_input)
+            cprint(f"AI:[cyan1] {response}[/cyan1]\n")
+ 
+if __name__=="__main__":
+    asyncio.run(run())
+
+
+    

@@ -1,0 +1,41 @@
+"""Observability (LangFuse §9)."""
+
+from shared.tracing.langfuse import (
+    case_trace,
+    ensure_trace_id,
+    flush,
+    get_current_trace_id,
+    observation,
+    record_elicitation,
+    record_error,
+    record_generation,
+    record_guardrail,
+    record_mcp_tool,
+    record_sampling,
+    record_span,
+    record_translation,
+    set_current_trace_id,
+    span,
+    start_case_trace,
+    trace_url,
+)
+
+__all__ = [
+    "case_trace",
+    "ensure_trace_id",
+    "flush",
+    "get_current_trace_id",
+    "observation",
+    "record_elicitation",
+    "record_error",
+    "record_generation",
+    "record_guardrail",
+    "record_mcp_tool",
+    "record_sampling",
+    "record_span",
+    "record_translation",
+    "set_current_trace_id",
+    "span",
+    "start_case_trace",
+    "trace_url",
+]

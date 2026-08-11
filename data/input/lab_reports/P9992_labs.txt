@@ -1,0 +1,3 @@
+Patient ID: P9992
+Test | Result | Flag
+Urinalysis | positive leukocytes | ABNORMAL — antibiotic course started

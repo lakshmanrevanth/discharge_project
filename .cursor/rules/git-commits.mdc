@@ -1,0 +1,28 @@
+---
+description: Short human commit messages; no AI/Cursor attribution
+alwaysApply: true
+---
+
+# Git commits
+
+When creating commits or pushing:
+
+- Use a **very short**, natural commit message (a few words). Write like a human teammate, not a changelog bot.
+- Prefer lowercase or sentence case; no buzzwords, no "comprehensive", "finalize", "enhance", "refactor to improve", or essay-style subjects.
+- One line only. No body unless the user asks.
+- Never add `Co-authored-by: Cursor`, `Made-with: Cursor`, or any AI attribution trailer.
+- Only commit when the user asks. Only push when the user asks.
+- Do not rewrite history unless the user explicitly asks.
+
+## Good
+
+- `init scaffold`
+- `update architecture`
+- `fix ehr mock`
+- `add rules config`
+
+## Bad
+
+- `Scaffold FA5-aligned project layout with service stubs and configs.`
+- `Add finalized end-to-end architecture diagram and SSoT link.`
+- `Update documentation to reflect the new agent orchestration flow.`

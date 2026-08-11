@@ -1,0 +1,32 @@
+---
+description: Keep implementation simple, beginner-friendly, and correct
+alwaysApply: true
+---
+
+# Simplicity & correctness
+
+This capstone must stay **low complexity** and **beginner-friendly**, while still
+working correctly against the SSoT (`Documentation/REQUIREMENTS_REFERENCE.md`).
+
+## Do
+
+- Prefer **one clear path** per feature (e.g. Extractor: harvest text → LLM).
+- Prefer **LLM** when it can do the job — do not add parallel mapper / heuristic
+  pipelines "for optimization" unless the SSoT explicitly requires them.
+- Keep code readable: short functions, plain comments, little abstraction.
+- Follow `Documentation/coding_style/` patterns; MCP tools live on the server.
+- Match FA5 contracts exactly (ports, Sampling, Roots, prompt names, etc.).
+
+## Do not
+
+- Dual paths (e.g. JSON-mapper **and** LLM) for the same step.
+- Clever fallbacks, deep OOP, or "enterprise" layers not in the coding-style refs.
+- Silent corrections of planted seed traps (validation must surface them).
+- Features beyond the current approved phase.
+
+## When reliability conflicts with cleverness
+
+Fix reliability **inside the one path** (better prompt, clearer schema, one
+retry with the same LLM call) — do **not** invent a second architecture.
+If a SSoT MUST requires a specific mechanism (e.g. MCP Sampling for Normalizer),
+implement that mechanism simply — never bypass it.

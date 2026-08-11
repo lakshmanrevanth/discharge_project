@@ -1,0 +1,48 @@
+================================================================
+ST. MARIAN REGIONAL MEDICAL CENTER  —  DISCHARGE SUMMARY
+================================================================
+
+Patient ID:           P9992
+Patient Name:         Omar Hassan
+Age:                  50
+Gender:               Male
+Address:              90 Canal St, Boston, MA 02114
+Admission Date:       2026-07-05
+Discharge Date:       2026-07-07
+Ward:                 4C
+Bed No.:              2
+Attending Physician:  Dr. Nina Patel, MD
+Consulting Doctors:   Dr. Patel
+Language of Record:   English
+Discharge OK:         YES
+
+----------------------------------------------------------------
+DISCHARGE DIAGNOSIS
+----------------------------------------------------------------
+1. Urinary tract infection (N39.0)
+
+----------------------------------------------------------------
+ALLERGIES
+----------------------------------------------------------------
+- Sulfa (rash)
+
+----------------------------------------------------------------
+DISCHARGE PRESCRIPTIONS
+----------------------------------------------------------------
+Sl.No | Medicine Name | Strength | Dosage | Frequency | Route | Period | Remarks | Total Qty
+1 | Sulfamethoxazole | 800 mg | 1 tablet | BID | ORAL | 3 days | Complete course | 6
+2 | Phenazopyridine | 100 mg | 1 tablet | TID | ORAL | 2 days | For dysuria | 6
+
+----------------------------------------------------------------
+FOLLOW-UP APPOINTMENT
+----------------------------------------------------------------
+- PCP clinic on 2026-07-21.
+
+----------------------------------------------------------------
+DISCHARGE INSTRUCTIONS
+----------------------------------------------------------------
+- Finish antibiotics; return for fever or flank pain.
+
+================================================================
+End of Document
+================================================================

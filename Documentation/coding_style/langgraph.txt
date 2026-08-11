@@ -1,0 +1,229 @@
+import os
+import getpass
+os.environ["TAVILY_API_KEY"] = getpass.getpass("Enter your Tavily API Key: ")
+
+import operator
+from typing import Annotated, List, TypedDict, Literal
+from datetime import datetime
+from pydantic import BaseModel, Field
+from langgraph.graph import StateGraph, START, END
+from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.prebuilt import ToolNode, tools_condition
+from langgraph.types import interrupt, Command
+from langchain_aws import ChatBedrockConverse
+from langchain_community.tools.tavily_search import TavilySearchResults
+from langchain_community.tools import YouTubeSearchTool
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage
+from rich import print as rprint
+
+
+class ConfidenceScore(BaseModel):
+	"""Structured output for article quality evaluation."""
+	score: float = Field(description="Confidence score between 0.0 and 1.0")
+	reasoning: str = Field(description="Explanation for the assigned score")
+
+
+class ArticleState(TypedDict):
+	target_lang: str
+	query: str
+	content_draft: str
+	confidence: float
+	messages: Annotated[List[BaseMessage], operator.add]
+
+
+tools = [TavilySearchResults(max_results=1, topic="news"), YouTubeSearchTool()]
+tool_node = ToolNode(tools)
+base_llm = ChatBedrockConverse(
+	model_id="anthropic.claude-3-sonnet-20240229-v1:0",
+	region_name="us-east-1",
+	temperature=0,
+	)
+llm_with_tools = base_llm.bind_tools(tools)
+scoring_llm = base_llm.with_structured_output(ConfidenceScore)
+
+
+def research_agent(state: ArticleState):
+    sys_msg = SystemMessage(content=f"You are a researcher. Find 1 recent article and 1 YouTube videos. Current date: {datetime.now().strftime('%Y-%m-%d')}")
+    # Always ensure user/tool messages come before the final instruction to avoid Bedrock sequence errors
+    response = llm_with_tools.invoke([sys_msg] + state["messages"])
+    return {"messages": [response]}
+def editor_node(state: ArticleState):
+    prompt = "Create a detailed English draft based on the research. Focus on factual accuracy and recency."
+    response = base_llm.invoke(state["messages"] + [HumanMessage(content=prompt)])
+    return {"content_draft": response.content, "messages": [response]}
+def scoring_node(state: ArticleState):
+    """New Node: Uses structured output to grade the article."""
+    eval_prompt = f"Critically evaluate this article for recency (target 2026) and depth:\n\n{state['content_draft']}"
+    result = scoring_llm.invoke([HumanMessage(content=eval_prompt)])
+    rprint(f"[bold yellow]LLM Scored Article: {result.score}[/bold yellow] ({result.reasoning})")
+    return {"confidence": result.score}
+def approval_gate(state: ArticleState):
+    """Node that only triggers an interrupt if confidence is low."""
+    # --- This part executes ONLY after the user resumes the graph ---
+   
+    if state["confidence"] < 0.95:
+        print(f"--- Human Feedback Is Required as the Confidence Score is : {state['confidence']} and It Is < 0.95.---")
+        # The graph pauses here. When resumed, 'human_input' gets the resume value.
+        human_input = interrupt({
+            "score": state["confidence"],
+            "instruction": "Enter 'approve' or provide feedback."
+        })
+        print(f"--- Human Feedback Received : {human_input}---")
+        # If the human provides feedback instead of 'approve', 
+        # we return it so the conditional edge can see it.
+        return {"confidence": 1.0 if human_input.lower() == "approve" else 0.0,
+                "messages": [HumanMessage(content=f"Instructor Feedback: {human_input}")]}
+    print(f"--- Human Feedback Is Not Required as the Confidence Score is : {state['confidence']} and It Is > 0.95---")
+    return {}
+def translation_node(state: ArticleState):
+    """New Node: Translates the final approved draft."""
+    prompt = f"Translate the following article into {state['target_lang']}. Maintain the professional tone and links:\n\n{state['content_draft']}"
+    response = base_llm.invoke([HumanMessage(content=prompt)])
+    return {"content_draft": response.content, "messages": [response]}
+def route_after_approval(state: ArticleState):
+    """Logic to determine the next node based on confidence."""
+    if state["confidence"] >= 0.7:
+        return "translator"
+    return "research_agent"
+
+
+
+builder = StateGraph(ArticleState)
+builder.add_node("research_agent", research_agent)
+builder.add_node("tools", tool_node)
+builder.add_node("editor", editor_node)
+builder.add_node("scoring", scoring_node)
+builder.add_node("approval_gate", approval_gate)
+builder.add_node("translator", translation_node)
+builder.add_edge(START, "research_agent")
+builder.add_conditional_edges("research_agent", tools_condition, {"tools": "tools", END: "editor"})
+builder.add_edge("tools", "research_agent")
+builder.add_edge("editor", "scoring")
+builder.add_edge("scoring", "approval_gate")
+# Add the conditional logic here
+builder.add_conditional_edges(
+    "approval_gate",
+    route_after_approval,
+    {
+        "translator": "translator",   # If score > 0.7
+        "research_agent": "research_agent" # If feedback was given
+    }
+)
+graph = builder.compile(checkpointer=InMemorySaver())
+graph
+
+
+
+if __name__ == "__main__":
+    lang = input("Enter target language: ") ##KANNADA
+    query = "Latest developments in quantum computing May 2026"
+    
+    config = {"configurable": {"thread_id": "portfolio_1"}}
+    initial_state = {"query": query, "target_lang": lang, "messages": [HumanMessage(content=query)]}
+    
+    try:
+        for event in graph.stream(initial_state, config=config, stream_mode="values"):
+            if "messages" in event:
+                rprint(event["messages"][-1])
+    except Exception:
+        rprint("\n[bold cyan]Waiting for Human Approval... Use Command(resume=...) to continue.[/bold cyan]")
+
+
+
+if __name__ == "__main__":
+    lang = input("Enter target language: ")  ## HINDI
+    query = "Latest developments in quantum computing May 2026"
+    
+    config = {"configurable": {"thread_id": "portfolio_1"}}
+    initial_state = {"query": query, "target_lang": lang, "messages": [HumanMessage(content=query)]}
+    
+    try:
+        for event in graph.stream(initial_state, config=config, stream_mode="values"):
+            if "messages" in event:
+                rprint(event["messages"][-1])
+    except Exception:
+        rprint("\n[bold cyan]Waiting for Human Approval... Use Command(resume=...) to continue.[/bold cyan]")
+
+
+
+graph.invoke(Command(resume="approve"), config=config)
+
+
+from typing import TypedDict, List, Optional
+from langgraph.graph import StateGraph, END
+class ChatState(TypedDict):
+	input: str
+	messages: List[str]
+	final_output: Optional[str]
+
+
+from langgraph.graph import StateGraph
+graph_builder = StateGraph(ChatState)
+
+
+def greet_user(state: ChatState) -> ChatState:
+    user_input = state["input"]
+    response = f"Hello! You said: {user_input}"
+    messages = state.get("messages", [])
+    messages = messages + [response]
+    return {"messages": messages}
+graph_builder.add_node("greet", greet_user)
+
+
+
+def finalize_response(state: ChatState) -> ChatState:
+    messages = state.get("messages", [])
+    final_text = "\n".join(messages)
+    return {
+        "final_output": final_text
+    }
+graph_builder.add_node("finalize", finalize_response)
+
+
+
+graph_builder.set_entry_point("greet")
+
+
+graph_builder.add_edge("greet", "finalize")
+
+
+#Routing function for conditional edge
+def routing_function(state: AgentState):
+	"""
+	Looks at the state and decides which key to return.
+	"""
+	# Logic to decide the path
+	if state.get("status") == "success":
+		return "key_1" # This will route to "node_a"
+	else:
+		return "key_2" # This will route to "node_b"
+		
+#Add the conditional edge using the function above
+graph_builder.add_conditional_edges(
+									"source_node", # The node that just finished
+									
+									routing_function, # A function that returns a string/key
+									
+									{ # A dictionary mapping keys to destination nodes
+										"key_1": "node_a",
+										"key_2": "node_b"
+									}
+								)
+
+
+
+graph_builder.add_edge("finalize", END)
+
+
+app = graph_builder.compile()
+
+
+initial_state: ChatState = {
+    "input": "Hi Raj!",
+    "messages": [],
+    "final_output": None
+}
+result = graph.invoke(initial_state)
+print(result["final_output"])
+
+

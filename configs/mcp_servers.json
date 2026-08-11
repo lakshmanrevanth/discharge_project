@@ -1,0 +1,10 @@
+{
+  "primary_clinical_tools": {
+    "transport": "streamable_http",
+    "url": "http://127.0.0.1:8200/clinicaltools"
+  },
+  "secondary_analytics": {
+    "transport": "streamable_http",
+    "url": "http://127.0.0.1:8201/analyticstools"
+  }
+}

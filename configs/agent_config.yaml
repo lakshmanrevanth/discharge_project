@@ -1,0 +1,141 @@
+# =============================================================================
+# agent_config.yaml — Ports, URLs, Root URI, A2A auth (FA5 Table 15 / SSoT §2)
+# =============================================================================
+# Runtime canonical config. Do not hardcode ports elsewhere.
+
+project_name: Agentic System for Automated Discharge Summaries
+
+a2a:
+  auth_header: X-Agent-Auth-Token
+  # Set real token via env AGENT_AUTH_TOKEN
+  auth_token_env: AGENT_AUTH_TOKEN
+  push_notifications: true  # capability required; behavior NOT SPECIFIED in FA5
+
+paths:
+  # MCP Root workspace — synced from Documentation/Data/incoming/
+  input_root: data/input
+  input_doctor_reports: data/input/doctor_reports
+  input_lab_reports: data/input/lab_reports
+  input_bills: data/input/bills
+  processed: data/processed
+  reports: data/reports
+  pipeline_log: data/reports/pipeline.log
+  vector_db: data/vector_db
+  rag_sessions: data/rag_sessions
+  report_template: templates/discharge_summary.html
+  rules_yaml: configs/rules.yaml
+  prompts_yaml: configs/prompts.yaml
+  model_config: configs/model_config.yaml
+  mcp_servers_json: configs/mcp_servers.json
+
+# Root URI registered by Discharge Monitor (shape matches FA5 file:///data/input)
+# Absolute path is resolved at runtime from paths.input_root
+mcp_roots:
+  - name: clinical_input
+    uri_scheme: file
+    relative_path: data/input
+
+services:
+  mock_ehr:
+    name: Mock EHR System
+    framework: FastAPI
+    host: 127.0.0.1
+    port: 8050
+    protocol: HTTP/REST
+
+  primary_mcp:
+    name: Primary Clinical Tools Server
+    framework: FastMCP
+    host: 127.0.0.1
+    port: 8200
+    transport_path: /clinicaltools
+    protocol: MCP streamable-HTTP
+
+  secondary_mcp:
+    name: Secondary Analytics Server
+    framework: FastMCP
+    host: 127.0.0.1
+    port: 8201
+    transport_path: /analyticstools
+    protocol: MCP streamable-HTTP
+
+  extractor:
+    name: Clinical Extractor Agent
+    framework: LangGraph
+    host: 127.0.0.1
+    port: 8100
+    a2a_streaming: false
+
+  validator:
+    name: Clinical Validation Agent
+    framework: LangGraph
+    host: 127.0.0.1
+    port: 8101
+    a2a_streaming: false
+
+  normalizer:
+    name: Clinical Normalizer Agent
+    framework: LangGraph
+    host: 127.0.0.1
+    port: 8102
+    a2a_streaming: false
+
+  monitor:
+    name: Discharge Monitor Agent
+    framework: Google ADK
+    host: 127.0.0.1
+    port: 8103
+    a2a_streaming: false
+
+  summary:
+    name: Discharge Summary Generator
+    framework: Google ADK
+    host: 127.0.0.1
+    port: 8104
+    a2a_streaming: true
+    section_order:
+      - patient
+      - meds
+      - labs
+      - bill
+      - instructions
+
+  rag:
+    name: Clinical RAG Q&A Agent
+    framework: Agno
+    host: 127.0.0.1
+    port: 8105
+    a2a_streaming: true
+    num_history_runs: 3
+    refusal_text: "I don't know — this information is not available in the patient records."
+    # Retrieval / chunking (FA5 names top-k; numeric default from coding_style/rag.txt)
+    top_k: 4
+    # Slightly wider retrieve helps multilingual questions whose top hit is not the med table
+    retrieve_k: 6
+    chunk_size: 500
+    chunk_overlap: 50
+    # FAISS cosine (normalized IP). In-context ≈0.34+; World-Cup OOC ≈0.17–0.22.
+    # Used when keyword overlap is 0 (common for EN questions on ES/NL/HI docs).
+    min_similarity: 0.28
+    session_db_file: rag_sessions.db
+    session_table: agent_sessions
+
+  host_orchestrator:
+    name: Host Orchestrator
+    framework: Google ADK
+    host: 127.0.0.1
+    port: 8083
+    ui: Gradio
+    role: A2A client (streaming-capable)
+
+  hitl_dashboard:
+    name: Streamlit HITL Dashboard
+    framework: Streamlit
+    host: 127.0.0.1
+    port: 8501
+    pages:
+      - Document Viewer
+      - Validation Report
+      - HITL Corrections
+      - RAG Q&A
+      - Discharge Summary

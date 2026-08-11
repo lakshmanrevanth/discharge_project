@@ -1,0 +1,48 @@
+================================================================
+ST. MARIAN REGIONAL MEDICAL CENTER  —  DISCHARGE SUMMARY
+================================================================
+
+Patient ID:           P9991
+Patient Name:         Nova Reid
+Age:                  38
+Gender:               Female
+Address:              12 Oak Lane, Portland, OR 97201
+Admission Date:       2026-07-01
+Discharge Date:       2026-07-03
+Ward:                 2A
+Bed No.:              5
+Attending Physician:  Dr. Kim Lee, MD
+Consulting Doctors:   Dr. Lee (Primary Care)
+Language of Record:   English
+Discharge OK:         YES
+
+----------------------------------------------------------------
+DISCHARGE DIAGNOSIS
+----------------------------------------------------------------
+1. Acute upper respiratory infection (J06.9)
+
+----------------------------------------------------------------
+ALLERGIES
+----------------------------------------------------------------
+- NKDA
+
+----------------------------------------------------------------
+DISCHARGE PRESCRIPTIONS
+----------------------------------------------------------------
+Sl.No | Medicine Name | Strength | Dosage | Frequency | Route | Period | Remarks | Total Qty
+1 | Paracetamol | 500 mg | 1 tablet | q6h PRN | ORAL | 5 days | For fever | 20
+2 | Guaifenesin | 200 mg | 1 tablet | TID | ORAL | 5 days | With water | 15
+
+----------------------------------------------------------------
+FOLLOW-UP APPOINTMENT
+----------------------------------------------------------------
+- PCP follow-up on 2026-07-17 with Dr. Lee.
+
+----------------------------------------------------------------
+DISCHARGE INSTRUCTIONS
+----------------------------------------------------------------
+- Rest, hydrate, return for worsening fever or shortness of breath.
+
+================================================================
+End of Document
+================================================================

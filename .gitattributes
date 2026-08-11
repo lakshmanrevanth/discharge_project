@@ -1,0 +1,2 @@
+# Keep shell scripts Unix-safe (CRLF breaks shebang on Linux/NuvePro)
+*.sh text eol=lf
