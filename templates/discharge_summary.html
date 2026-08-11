@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Discharge Audit Report — {{patient_id}}</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; color: #222; }
+    h1 { font-size: 1.4rem; }
+    .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: bold; }
+    .low { background: #dff0d8; color: #3c763d; }
+    .medium { background: #fcf8e3; color: #8a6d3b; }
+    .high { background: #f2dede; color: #a94442; }
+    section { margin-bottom: 1.2rem; }
+    ul { margin: 0.3rem 0; }
+  </style>
+</head>
+<body>
+  <h1>Discharge Audit Report — {{patient_name}} ({{patient_id}})</h1>
+  <p>Generated: {{generated_at}} &middot; rules_version: {{rules_version}}</p>
+
+  <section id="risk">
+    <h2>Risk Level: <span class="badge {{risk_level}}">{{risk_level}}</span> (score {{risk_score}})</h2>
+    <p><strong>Recommendation:</strong> {{recommendation}}</p>
+    <p><strong>Discharge blocked:</strong> {{discharge_blocked}}</p>
+  </section>
+
+  <section id="translation">
+    <h2>Translation Confidence</h2>
+    <p>{{translation_confidence}}</p>
+  </section>
+
+  <section id="missing_fields">
+    <h2>Missing Fields</h2>
+    <p>{{missing_fields}}</p>
+  </section>
+
+  <section id="ehr_discrepancies">
+    <h2>EHR Discrepancies</h2>
+    <ul>{{ehr_discrepancies}}</ul>
+  </section>
+
+  <section id="medication_conflicts">
+    <h2>Medication Conflicts</h2>
+    <ul>{{medication_conflicts}}</ul>
+  </section>
+
+  <section id="bill">
+    <h2>Bill</h2>
+    <p>Amount: {{bill_amount}} &middot; Payment status: {{bill_payment_status}}</p>
+  </section>
+</body>
+</html>

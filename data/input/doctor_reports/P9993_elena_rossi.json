@@ -1,0 +1,31 @@
+{
+  "patient_id": "P9993",
+  "patient_name": "Elena Rossi",
+  "age": 34,
+  "gender": "Female",
+  "address": "4 Via Roma, Austin, TX 78701",
+  "admission_date": "2026-07-08",
+  "discharge_date": "2026-07-09",
+  "ward": "1A",
+  "bed_no": "3",
+  "attending_physician": "Dr. Sam Ortiz, MD",
+  "consulting_doctors": ["Dr. Ortiz"],
+  "discharge_diagnosis": ["Fever, unspecified (R50.9)"],
+  "allergies": ["NKDA"],
+  "medications": [
+    {
+      "medicine_name": "Paracetamol 500 mg",
+      "strength": "500 mg",
+      "dosage": "1 tablet",
+      "frequency": "q6h PRN",
+      "route": "ORAL",
+      "period": "3 days",
+      "remarks": "For fever",
+      "total_quantity": "12"
+    }
+  ],
+  "follow_up_appointment": "PCP on 2026-07-16",
+  "discharge_instructions": "Hydrate and rest.",
+  "discharge_approved": true,
+  "language": "en"
+}

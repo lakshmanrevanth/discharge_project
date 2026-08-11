@@ -1,0 +1,12 @@
+{
+  "bill_id": "BILL-2026-9995",
+  "patient_id": "P9995",
+  "patient_name": "James Cole",
+  "issue_date": "2026-07-17",
+  "currency": "USD",
+  "payment_status": "PAID",
+  "line_items": [
+    {"item_code": "ROOM", "description": "Ward bed (3 nights)", "qty": 3, "unit_price": 350.0, "total": 1050.0}
+  ],
+  "total_amount": 1050.0
+}

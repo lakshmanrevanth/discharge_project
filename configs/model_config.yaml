@@ -1,0 +1,32 @@
+# =============================================================================
+# model_config.yaml — LiteLLM / embedding models (implementation aid)
+# =============================================================================
+# Does NOT define ports. Ports live only in agent_config.yaml.
+
+llm:
+  primary:
+    provider: bedrock
+    # Used via LiteLLM; Sampling ModelPreferences hint: nova-lite
+    model: amazon.nova-lite-v1:0
+    litellm_model: bedrock/amazon.nova-lite-v1:0
+    hint: nova-lite
+    role: multilingual_and_primary
+  fallback:
+    provider: bedrock
+    # Sampling ModelPreferences hint: command-r-plus (via Bedrock when AWS keys set)
+    model: cohere.command-r-plus-v1:0
+    litellm_model: bedrock/cohere.command-r-plus-v1:0
+    hint: command-r-plus
+    role: english_fallback
+
+embeddings:
+  model_name: sentence-transformers/all-MiniLM-L6-v2
+
+sampling:
+  # Medical Lang Bridge → Normalizer sampling_callback (§3.6)
+  multilingual_hint: nova-lite
+  english_hint: command-r-plus
+
+rag:
+  groundedness_trigger_faithfulness: 0.7  # FA5 Table 12 HallucinationChecker
+  # rules.yaml also has rag_groundedness_min: 0.75 — see SSoT conflict §16.5

@@ -1,0 +1,323 @@
+from langchain_community.vectorstores import DeepLake
+from langchain_text_splitters import CharacterTextSplitter
+from langchain_community.document_loaders import TextLoader
+# Load the text document
+loader = TextLoader("Harry Potter 1 - Sorcerer's Stone.txt")
+documents = loader.load()
+# Split the text into chunks
+text_splitter = CharacterTextSplitter(chunk_size=1100, chunk_overlap=0)
+
+docs = text_splitter.split_documents(documents)
+
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+text_splitter = RecursiveCharacterTextSplitter(
+    separators=["\n\n","\n", " "],
+    chunk_size = 1000,
+    chunk_overlap = 200,
+    #length_function = len_func,
+    is_separator_regex=True
+)
+chunk_list = text_splitter.split_documents(documents)
+chunk_list
+
+from langchain_community.document_loaders import PyPDFLoader
+loader = PyPDFLoader("bns_v2.pdf")
+documents = loader.load()
+documents
+
+
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+text_splitter = RecursiveCharacterTextSplitter(
+    separators=["\n\n","\n", ""],
+    chunk_size = 1000,
+    chunk_overlap = 200,
+    #length_function = len_func,
+    is_separator_regex=True
+)
+chunk_list = text_splitter.split_documents(documents)
+chunk_list[0]
+
+from langgraph.graph import StateGraph, START, END, add_messages
+from langchain_aws import ChatBedrockConverse, BedrockEmbeddings
+from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.prebuilt.tool_node import ToolNode
+from langchain_community.tools import tool
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage, AIMessage
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_community.vectorstores import FAISS
+from typing import TypedDict, Annotated, Literal, Optional, Tuple, List
+import os
+import operator
+from rich import print
+from langchain.document_loaders import PyPDFLoader
+
+
+from langchain_aws import ChatBedrockConverse, BedrockEmbeddings
+embedding_model = BedrockEmbeddings(model_id="cohere.embed-english-v3")
+
+
+llm= ChatBedrockConverse(model="cohere.command-r-plus-v1:0", max_tokens=300)
+
+
+import json
+from langchain_core.documents import Document
+# Load semi-structured policy data from a JSON file
+with open("policy.json", "r") as f:
+    data = json.load(f)
+# Initialize a list to hold LangChain Document objects
+documents = []
+# Convert each JSON policy entry into a Document
+for item in data:
+    documents.append(
+        Document(
+            # Main textual content used for embedding and semantic search
+            page_content=item["content"],
+            
+            # Metadata preserves structural and descriptive attributes
+            # and will later be used for filtering during retrieval
+            metadata={
+                "id": item["id"],          # Unique policy identifier
+                "title": item["title"],    # Policy title for traceability
+                "section": item["section"],# Logical category (e.g., Leave, Retention)
+                "source": "json"           # Source type for provenance tracking
+            }
+        )
+    )
+documents
+
+
+from langchain_community.llms import Bedrock
+from langchain_community.vectorstores import FAISS
+from langchain_community.embeddings import BedrockEmbeddings
+from langchain.document_loaders import PyPDFLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_core.messages import HumanMessage, AIMessage, BaseMessage, ToolMessage
+from langchain_core.tools import tool
+from langgraph.graph import END, START, StateGraph, MessagesState
+from typing import List, Literal, Optional
+from typing_extensions import TypedDict
+import os
+from typing import List
+from typing_extensions import TypedDict
+from langgraph.prebuilt import ToolNode
+from langgraph.checkpoint.memory import InMemorySaver
+
+loader = PyPDFLoader("bns_v2.pdf")
+docs = loader.load()
+
+# 1. Load and index PDF
+splitter = RecursiveCharacterTextSplitter(chunk_size=500, 
+                                          chunk_overlap=50,
+                                          separators=["\n\n", "\n", ".", " ", ""])
+chunks = splitter.split_documents(docs)
+chunks[5] 
+
+embedding_model = BedrockEmbeddings(model_id="amazon.titan-embed-text-v1")
+embedding_model = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
+vectorstore = FAISS.from_documents(chunks, embedding_model)
+
+
+# Define LLM
+llm = Bedrock(model_id="amazon.tital.nova-lite-v1")
+
+@tool
+def retrieve_context(query: str) -> str:
+	"""Retrieve relevant sections from Bharatiya Nyaya 	Sanhita or IPC documents."""
+	retriever = vectorstore.as_retriever(k=4)
+	docs = retriever.invoke(query)
+	return "\n\n".join(doc.page_content for doc in docs)
+
+
+llm_with_tools = llm.bind_tools([retrieve_context])
+answer_llm = llm
+
+
+class AgentState(MessagesState):
+    answer: str
+
+
+def assistant(state: AgentState):
+    system_prompt = """
+You are a legal assistant.
+If the user's question requires information from Bharatiya Nyaya
+Sanhita (BNS) or Indian Penal Code (IPC), use the
+retrieve_context tool.
+If the question can be answered without retrieval,
+answer directly.
+"""
+    messages = state["messages"]
+    response = llm_with_tools.invoke(
+        [HumanMessage(content=system_prompt)] + messages
+    )
+    return {
+        "messages": [response]
+    }
+
+
+tool_node = ToolNode([retrieve_context])
+
+
+def generate(state: AgentState):
+    context = ""
+    for msg in reversed(state["messages"]):
+        if isinstance(msg, ToolMessage):
+            context = msg.content
+            break
+    question = ""
+    for msg in reversed(state["messages"]):
+        if isinstance(msg, HumanMessage):
+            question = msg.content
+            break
+    if context:
+        prompt = f"""
+Use the retrieved legal context to answer.
+Context:
+{context}
+Question:
+{question}
+Answer:
+"""
+    else:
+        prompt = question
+    response = answer_llm.invoke(prompt)
+    return {
+        "messages": [AIMessage(content=response.content)],
+        "answer": response.content,
+    }
+
+
+def should_continue(state: AgentState):
+    last_message = state["messages"][-1]
+    if last_message.tool_calls:
+        return "tools"
+    return "generate"
+
+
+workflow = StateGraph(AgentState)
+workflow.add_node("assistant", assistant)
+workflow.add_node("tools", tool_node)
+workflow.add_node("generate", generate)
+workflow.set_entry_point("assistant")
+workflow.add_conditional_edges(
+    "assistant",
+    should_continue,
+    {
+        "tools": "tools",
+        "generate": "generate",
+    },
+)
+workflow.add_edge("tools", "generate")
+workflow.add_edge("generate", END)
+memory = InMemorySaver()
+app = workflow.compile(checkpointer=memory)
+app
+
+
+from rich import print
+config = {"configurable": {"thread_id": "1"}}
+response = app.invoke(
+    {
+        "messages": [
+            HumanMessage(
+                content="What is counterfiet in IPC?"
+            )
+        ]
+    },
+    config=config,
+)
+print(response["answer"])
+
+
+from typing import TypedDict, Literal, Dict, Any
+from langgraph.graph import StateGraph, END
+from langchain_aws import ChatBedrockConverse
+import json
+
+
+class HumanInTheLoopState(TypedDict):
+   question: str
+   ai_draft: str
+   human_feedback: str
+   final_response: str
+
+
+llm = ChatBedrockConverse(model_id = "cohere.command-r-plus-v1:0")
+llm.invoke("Hi").content
+
+def draft_response(state: Dict[str, Any]) -> Dict[str, Any]:
+   question = state["question"]
+   response = llm.invoke(f"Draft a helpful response to: {question}")
+   print(f"\n AI Drafted Response:\n{response.content}\n")
+   return {"ai_draft": response.content}
+
+# Node: Human provides feedback
+def get_human_feedback(state: Dict[str, Any]) -> Dict[str, Any]:
+   print("\n HUMAN REVIEW REQUIRED")
+   print(f"Question: {state['question']}")
+   print(f"AI Draft: {state['ai_draft']}")
+   feedback = input("\nEnter feedback or type 'approve' to accept: ")
+   return {"human_feedback": feedback}
+
+
+# Node: Decide next step based on feedback
+def decide_next_step(state: Dict[str, Any]) -> Literal["revise", "finalize"]:
+   if state["human_feedback"].strip().lower() == "approve":
+       return "finalize"
+   return "revise"
+
+
+# Node: Revise response using feedback
+def revise_response(state: Dict[str, Any]) -> Dict[str, Any]:
+   prompt = (
+       f"Revise the following response based on this feedback:\n"
+       f"Response: {state['ai_draft']}\n"
+       f"Feedback: {state['human_feedback']}"
+   )
+   revised = llm.invoke(prompt)
+   print(f"\n Revised Response:\n{revised.content}\n")
+   return {"ai_draft": revised.content}
+
+# Node: Finalize response
+def finalize_response(state: Dict[str, Any]) -> Dict[str, Any]:
+   final = f"FINAL RESPONSE:\n{state['ai_draft']}"
+   print(f"\n Final Response Ready:\n{final}\n")
+   return {"final_response": final}
+
+
+
+# Build the LangGraph workflow
+def create_hitl_graph():
+   graph = StateGraph(HumanInTheLoopState)
+   graph.add_node("draft", draft_response)
+   graph.add_node("human_review", get_human_feedback)
+   graph.add_node("revise", revise_response)
+   graph.add_node("finalize", finalize_response)
+   graph.add_edge("draft", "human_review")
+   graph.add_conditional_edges("human_review", decide_next_step, {
+       "revise": "revise",
+       "finalize": "finalize"
+   })
+   graph.add_edge("revise", "human_review")
+   graph.add_edge("finalize", END)
+   graph.set_entry_point("draft")
+   print(graph.compile())
+   return graph.compile()
+
+
+create_hitl_graph()
+# Run the workflow
+if __name__ == "__main__":
+    workflow = create_hitl_graph()
+    initial_state = {
+        "question": "How can I implement a human-in-the-loop system in AI?",
+        "ai_draft": "",
+        "human_feedback": "",
+        "final_response": ""
+    }
+    for _ in workflow.stream(initial_state):
+        pass
+    print("\n WORKFLOW COMPLETED")
+
+
